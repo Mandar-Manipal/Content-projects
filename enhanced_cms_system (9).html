@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Management System - Academy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .workflow-indicator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .workflow-step.active {
+            background: #28a745;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .workflow-step.pending {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .workflow-step.completed {
+            background: #6c757d;
+            color: white;
+        }
+
+        .workflow-arrow {
+            font-size: 1.5em;
+            color: #6c757d;
+            margin: 0 10px;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .data-management {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 5px solid #2196f3;
+        }
+
+        .data-management h3 {
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+
+        .data-management-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .data-btn {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .data-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .stage-selector {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .stage-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            margin: 0 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .stage-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .stage-btn.active {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+
+        .form-section {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pending-requests {
+            background: #fff3e0;
+            border: 2px solid #ff9800;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .pending-requests h3 {
+            color: #f57c00;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .pending-requests h3::before {
+            content: "⏳";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .request-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .request-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .request-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .request-id-badge {
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .request-priority {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .priority-high { background: #ffebee; color: #c62828; }
+        .priority-medium { background: #fff3e0; color: #ef6c00; }
+        .priority-low { background: #e8f5e8; color: #2e7d32; }
+
+        .request-card-body {
+            margin-bottom: 10px;
+        }
+
+        .request-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .request-meta {
+            font-size: 0.9em;
+            color: #6c757d;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .request-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .btn-approve {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-reject {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .form-col {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1em;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .file-upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload-area:hover {
+            background: #e3f2fd;
+            border-color: #3498db;
+            transform: scale(1.02);
+        }
+
+        .file-upload-icon {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .file-upload-text {
+            font-size: 1.1em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .file-upload-subtext {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
+        .file-list {
+            margin-top: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 10px;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .file-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+            color: #667eea;
+        }
+
+        .file-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .file-size {
+            font-size: 0.8em;
+            color: #6c757d;
+        }
+
+        .file-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .file-remove:hover {
+            background: #c82333;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(23, 162, 184, 0.3);
+        }
+
+        .email-btn {
+            background: linear-gradient(135deg, #fd7e14, #e55353);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .email-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(253, 126, 20, 0.3);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .others-input {
+            display: none;
+            margin-top: 10px;
+        }
+
+        .others-input.show {
+            display: block;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .workflow-indicator {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .workflow-arrow {
+                transform: rotate(90deg);
+            }
+            
+            .stage-btn {
+                margin: 5px;
+                padding: 10px 20px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .data-management-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Content Management System</h1>
+            <p>Academy Content Request & Approval Workflow</p>
+        </div>
+
+        <div class="workflow-indicator">
+            <div class="workflow-step active" id="hod-step">HOD (Maker)</div>
+            <div class="workflow-arrow">→</div>
+            <div class="workflow-step pending" id="hop-step">HOP (Checker)</div>
+            <div class="workflow-arrow">→</div>
+            <div class="workflow-step pending" id="fpr-step">Content Team FPR</div>
+        </div>
+
+        <div class="main-content">
+            <!-- Data Management Section -->
+            <div class="data-management">
+                <h3>📂 Data Management</h3>
+                <p style="margin-bottom: 15px; color: #555;">Save and load your request data to maintain continuity across sessions and computers.</p>
+                <div class="data-management-buttons">
+                    <button class="data-btn" onclick="exportAllData()">💾 Export All Data</button>
+                    <button class="data-btn" onclick="importData()">📥 Import Data</button>
+                    <button class="data-btn" onclick="clearAllData()">🗑️ Clear All Data</button>
+                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                </div>
+            </div>
+
+            <div class="stage-selector">
+                <button class="stage-btn active" onclick="showStage('hod')">HOD Stage</button>
+                <button class="stage-btn" onclick="showStage('hop')">HOP Stage</button>
+                <button class="stage-btn" onclick="showStage('fpr')">FPR Stage</button>
+            </div>
+
+            <!-- HOD (Maker) Stage -->
+            <div class="form-section active" id="hod-section">
+                <h2>📝 HOD (Maker) - Content Request Creation</h2>
+                
+                <!-- Pending Requests for HOD -->
+                <div id="hod-pending-requests" class="pending-requests" style="display: none;">
+                    <h3>Your Submitted Requests</h3>
+                    <div id="hod-pending-list"></div>
+                </div>
+
+                <form id="hod-form">
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="vertical">Department/Vertical <span class="required">*</span></label>
+                                <select id="vertical" required>
+                                    <option value="">Select Department</option>
+                                    <option value="Axis Bank">Axis Bank</option>
+                                    <option value="HDFC Bank">HDFC Bank</option>
+                                    <option value="IDFC First Bank">IDFC First Bank</option>
+                                    <option value="Kotak Bank">Kotak Bank</option>
+                                    <option value="ICICI Bank">ICICI Bank</option>
+                                    <option value="IDBI Bank">IDBI Bank</option>
+                                    <option value="CBI">CBI</option>
+                                    <option value="BOI">BOI</option>
+                                    <option value="Federal Bank">Federal Bank</option>
+                                    <option value="TMB">TMB</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <input type="text" id="other-vertical" class="others-input" placeholder="Please specify other department">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="program-name">Program Name <span class="required">*</span></label>
+                                <select id="program-name" required>
+                                    <option value="">Select Program</option>
+                                    <option value="Long Term">Long Term</option>
+                                    <option value="Short Term">Short Term</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="request-type">Request Type <span class="required">*</span></label>
+                                <select id="request-type" required>
+                                    <option value="">Select Request Type</option>
+                                    <option value="Content Creation">Content Creation</option>
+                                    <option value="Content Update">Content Update</option>
+                                    <option value="Content Review">Content Review</option>
+                                    <option value="Content Translation">Content Translation</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="priority">Priority Level <span class="required">*</span></label>
+                                <select id="priority" required>
+                                    <option value="">Select Priority</option>
+                                    <option value="High">High</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="Low">Low</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="brief-title">Brief Title of Request <span class="required">*</span></label>
+                                <input type="text" id="brief-title" required placeholder="Enter brief title of the content request">
+                            </div>
+                        </div>
+                        <div class="form-col">
+                            <div class="form-group">
+                                <label for="deadline">Expected Deadline <span class="required">*</span></label>
+                                <input type="date" id="deadline" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="content-description">Content Description <span class="required">*</span></label>
+                        <textarea id="content-description" required placeholder="Provide detailed description of the content requirements"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="additional-notes">Additional Notes</label>
+                        <textarea id="additional-notes" placeholder="Any additional information or special requirements"></textarea>
+                    </div>
+
+                    <!-- File Upload Section -->
+                    <div class="form-group">
+                        <label>📎 Attach Files (Optional)</label>
+                        <div class="file-upload-area" id="file-upload-area">
+                            <div class="file-upload-icon">📁</div>
+                            <div class="file-upload-text">Click to select files or drag and drop</div>
+                            <div class="file-upload-subtext">Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, PNG (Max 10MB each)</div>
+                            <input type="file" id="file-input" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" style="display: none;">
+                        </div>
+                        <div id="file-list" class="file-list" style="display: none;">
+                            <strong>Selected Files:</strong>
+                            <div id="files-container"></div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Submit Request</button>
+                </form>
+
+                <div id="hod-success" class="alert alert-success" style="display:none;">
+                    <strong>✅ Success!</strong> Request created successfully. <br>
+                    <strong>Request ID:</strong> <span id="generated-request-id"></span><br>
+                    <strong>📋 Next Step:</strong> Request moved to HOP. Please get approval from HOP.
+                </div>
+            </div>
+
+            <!-- HOP (Checker) Stage -->
+            <div class="form-section" id="hop-section">
+                <h2>✅ HOP (Checker) - Request Approval</h2>
+                
+                <!-- Pending Requests for HOP -->
+                <div id="hop-pending-requests" class="pending-requests" style="display: none;">
+                    <h3>Pending Requests for Approval</h3>
+                    <div id="hop-pending-list"></div>
+                </div>
+
+                <div id="hop-no-request" class="alert alert-warning">
+                    No pending requests for approval. Requests will appear here once submitted by HOD.
+                </div>
+            </div>
+
+            <!-- FPR Stage -->
+            <div class="form-section" id="fpr-section">
+                <h2>📊 Content Team FPR - Final Processing & Export</h2>
+                
+                <!-- Approved Requests for FPR -->
+                <div id="fpr-approved-requests" class="pending-requests" style="display: none;">
+                    <h3>Approved Requests for Processing</h3>
+                    <div id="fpr-approved-list"></div>
+                </div>
+
+                <div id="fpr-no-request" class="alert alert-warning">
+                    No approved requests available. Complete the HOD and HOP stages first.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Details Modal -->
+    <div id="request-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Request Details</h3>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modal-body"></div>
+            <div id="modal-actions" class="action-buttons"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        // Global variables
+        let allRequests = [];
+        let uploadedFiles = [];
+        let usedRequestIds = new Set();
+        let requestCounters = {
+            'Axis Bank': 0, 'HDFC Bank': 0, 'IDFC First Bank': 0, 'Kotak Bank': 0,
+            'ICICI Bank': 0, 'IDBI Bank': 0, 'CBI': 0, 'BOI': 0,
+            'Federal Bank': 0, 'TMB': 0, 'Other': 0
+        };
+
+        // FILE UPLOAD SETUP - Using the working method
+        function setupFileUpload() {
+            const fileUploadArea = document.getElementById('file-upload-area');
+            const fileInput = document.getElementById('file-input');
+            
+            if (!fileUploadArea || !fileInput) return;
+            
+            // Click handler
+            fileUploadArea.onclick = function() {
+                fileInput.click();
+            };
+            
+            // File selection handler
+            fileInput.onchange = function() {
+                if (this.files && this.files.length > 0) {
+                    handleFiles(this.files);
+                }
+            };
+            
+            // Drag and drop
+            fileUploadArea.ondragover = function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '#e3f2fd';
+            };
+            
+            fileUploadArea.ondragleave = function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '';
+            };
+            
+            fileUploadArea.ondrop = function(e) {
+                e.preventDefault();
+                this.style.backgroundColor = '';
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                    handleFiles(e.dataTransfer.files);
+                }
+            };
+        }
+
+        // Handle file selection
+        function handleFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                
+                // Validation
+                if (file.size > 10 * 1024 * 1024) {
+                    alert(`File "${file.name}" is too large (max 10MB)`);
+                    continue;
+                }
+                
+                const extension = file.name.split('.').pop().toLowerCase();
+                const allowed = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'jpg', 'jpeg', 'png'];
+                if (!allowed.includes(extension)) {
+                    alert(`File "${file.name}" type not supported`);
+                    continue;
+                }
+                
+                if (uploadedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    alert(`File "${file.name}" already uploaded`);
+                    continue;
+                }
+                
+                uploadedFiles.push(file);
+                displayFile(file);
+            }
+            
+            document.getElementById('file-input').value = '';
+        }
+
+        // Display file in list
+        function displayFile(file) {
+            const fileList = document.getElementById('file-list');
+            const container = document.getElementById('files-container');
+            
+            fileList.style.display = 'block';
+            
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'file-item';
+            
+            const extension = file.name.split('.').pop().toLowerCase();
+            const icons = {
+                'pdf': '📄', 'doc': '📝', 'docx': '📝', 'xls': '📊', 'xlsx': '📊',
+                'ppt': '📋', 'pptx': '📋', 'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️'
+            };
+            const icon = icons[extension] || '📎';
+            const sizeKB = Math.round(file.size / 1024);
+            const sizeText = sizeKB > 1024 ? `${Math.round(sizeKB/1024)} MB` : `${sizeKB} KB`;
+            
+            fileDiv.innerHTML = `
+                <div class="file-info">
+                    <div class="file-icon">${icon}</div>
+                    <div class="file-details">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${sizeText}</div>
+                    </div>
+                </div>
+                <button class="file-remove" onclick="removeFile('${file.name}', ${file.size})">Remove</button>
+            `;
+            
+            container.appendChild(fileDiv);
+        }
+
+        // Remove file
+        function removeFile(fileName, fileSize) {
+            uploadedFiles = uploadedFiles.filter(f => !(f.name === fileName && f.size === fileSize));
+            
+            const container = document.getElementById('files-container');
+            const items = container.children;
+            for (let i = items.length - 1; i >= 0; i--) {
+                if (items[i].querySelector('.file-name').textContent === fileName) {
+                    items[i].remove();
+                    break;
+                }
+            }
+            
+            if (uploadedFiles.length === 0) {
+                document.getElementById('file-list').style.display = 'none';
+            }
+        }
+
+        // FORM SETUP
+        function setupForm() {
+            // Vertical selection
+            const verticalSelect = document.getElementById('vertical');
+            if (verticalSelect) {
+                verticalSelect.onchange = function() {
+                    const otherInput = document.getElementById('other-vertical');
+                    if (this.value === 'Other') {
+                        otherInput.classList.add('show');
+                        otherInput.required = true;
+                    } else {
+                        otherInput.classList.remove('show');
+                        otherInput.required = false;
+                        otherInput.value = '';
+                    }
+                };
+            }
+
+            // Form submission
+            const form = document.getElementById('hod-form');
+            if (form) {
+                form.onsubmit = function(e) {
+                    e.preventDefault();
+                    createRequest();
+                };
+            }
+
+            // Set minimum date
+            const deadlineInput = document.getElementById('deadline');
+            if (deadlineInput) {
+                deadlineInput.min = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        // Create new request
+        function createRequest() {
+            const vertical = document.getElementById('vertical').value;
+            const otherVertical = document.getElementById('other-vertical').value;
+            const finalVertical = vertical === 'Other' ? otherVertical : vertical;
+            
+            if (!finalVertical) {
+                alert('Please select a department/vertical.');
+                return;
+            }
+            
+            // Generate unique ID
+            requestCounters[finalVertical] = (requestCounters[finalVertical] || 0) + 1;
+            const verticalCode = finalVertical.replace(/\s+/g, '').toUpperCase();
+            const requestId = `${verticalCode}-${new Date().getFullYear()}-${String(requestCounters[finalVertical]).padStart(4, '0')}`;
+            
+            const newRequest = {
+                id: requestId,
+                vertical: finalVertical,
+                programName: document.getElementById('program-name').value,
+                requestType: document.getElementById('request-type').value,
+                priority: document.getElementById('priority').value,
+                briefTitle: document.getElementById('brief-title').value,
+                deadline: document.getElementById('deadline').value,
+                contentDescription: document.getElementById('content-description').value,
+                additionalNotes: document.getElementById('additional-notes').value,
+                attachedFiles: uploadedFiles.map(file => ({
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                })),
+                status: 'Pending HOP Approval',
+                hodSubmissionDate: new Date().toISOString().split('T')[0],
+                hopComments: '',
+                fprComments: '',
+                hopApprovalDate: null,
+                fprCompletionDate: null
+            };
+            
+            allRequests.push(newRequest);
+            saveData();
+            updateLists();
+            
+            // Show success message
+            document.getElementById('generated-request-id').textContent = requestId;
+            document.getElementById('hod-success').style.display = 'block';
+            
+            // Reset form
+            document.getElementById('hod-form').reset();
+            document.getElementById('other-vertical').classList.remove('show');
+            uploadedFiles = [];
+            document.getElementById('file-list').style.display = 'none';
+            document.getElementById('files-container').innerHTML = '';
+            
+            setTimeout(() => {
+                document.getElementById('hod-success').style.display = 'none';
+            }, 8000);
+        }
+
+        // DATA MANAGEMENT
+        function saveData() {
+            const data = {
+                allRequests: allRequests,
+                requestCounters: requestCounters,
+                usedRequestIds: Array.from(usedRequestIds),
+                lastSaved: new Date().toISOString()
+            };
+            localStorage.setItem('cmsSystemData', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const savedData = localStorage.getItem('cmsSystemData');
+            if (savedData) {
+                try {
+                    const data = JSON.parse(savedData);
+                    allRequests = data.allRequests || [];
+                    requestCounters = { ...requestCounters, ...data.requestCounters };
+                    usedRequestIds = new Set(data.usedRequestIds || []);
+                } catch (error) {
+                    console.error('Error loading saved data:', error);
+                }
+            }
+        }
+
+        function exportAllData() {
+            const data = {
+                allRequests: allRequests,
+                requestCounters: requestCounters,
+                usedRequestIds: Array.from(usedRequestIds),
+                exportDate: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `CMS_Data_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            alert('✅ Data exported successfully!');
+        }
+
+        function importData() {
+            document.getElementById('import-file-input').click();
+        }
+
+        function clearAllData() {
+            if (confirm('⚠️ Clear all data? This cannot be undone.')) {
+                allRequests = [];
+                uploadedFiles = [];
+                usedRequestIds = new Set();
+                requestCounters = {
+                    'Axis Bank': 0, 'HDFC Bank': 0, 'IDFC First Bank': 0, 'Kotak Bank': 0,
+                    'ICICI Bank': 0, 'IDBI Bank': 0, 'CBI': 0, 'BOI': 0,
+                    'Federal Bank': 0, 'TMB': 0, 'Other': 0
+                };
+                localStorage.removeItem('cmsSystemData');
+                updateLists();
+                alert('✅ All data cleared!');
+            }
+        }
+
+        // STAGE MANAGEMENT
+        function showStage(stage) {
+            // Hide all sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active from buttons
+            document.querySelectorAll('.stage-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(stage + '-section');
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Activate button
+            event.target.classList.add('active');
+        }
+
+        // UPDATE LISTS
+        function updateLists() {
+            updateHODList();
+            updateHOPList();
+            updateFPRList();
+        }
+
+        function updateHODList() {
+            const hodRequests = allRequests.filter(req => 
+                ['Pending HOP Approval', 'Approved by HOP - Pending FPR', 'Completed by FPR', 'Rejected by HOP'].includes(req.status)
+            );
+            
+            const container = document.getElementById('hod-pending-requests');
+            const list = document.getElementById('hod-pending-list');
+            
+            if (hodRequests.length > 0) {
+                container.style.display = 'block';
+                list.innerHTML = '';
+                hodRequests.forEach(request => {
+                    list.appendChild(createRequestCard(request, 'hod'));
+                });
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function updateHOPList() {
+            const hopRequests = allRequests.filter(req => req.status === 'Pending HOP Approval');
+            
+            const container = document.getElementById('hop-pending-requests');
+            const list = document.getElementById('hop-pending-list');
+            const noRequest = document.getElementById('hop-no-request');
+            
+            if (hopRequests.length > 0) {
+                container.style.display = 'block';
+                noRequest.style.display = 'none';
+                list.innerHTML = '';
+                hopRequests.forEach(request => {
+                    list.appendChild(createRequestCard(request, 'hop'));
+                });
+            } else {
+                container.style.display = 'none';
+                noRequest.style.display = 'block';
+            }
+        }
+
+        function updateFPRList() {
+            const fprRequests = allRequests.filter(req => 
+                ['Approved by HOP - Pending FPR', 'Completed by FPR'].includes(req.status)
+            );
+            
+            const container = document.getElementById('fpr-approved-requests');
+            const list = document.getElementById('fpr-approved-list');
+            const noRequest = document.getElementById('fpr-no-request');
+            
+            if (fprRequests.length > 0) {
+                container.style.display = 'block';
+                noRequest.style.display = 'none';
+                list.innerHTML = '';
+                fprRequests.forEach(request => {
+                    list.appendChild(createRequestCard(request, 'fpr'));
+                });
+            } else {
+                container.style.display = 'none';
+                noRequest.style.display = 'block';
+            }
+        }
+
+        function createRequestCard(request, userRole) {
+            const card = document.createElement('div');
+            card.className = 'request-card';
+            
+            const priorityClass = `priority-${request.priority.toLowerCase()}`;
+            const statusEmoji = getStatusEmoji(request.status);
+            
+            let actions = '';
+            if (userRole === 'hop' && request.status === 'Pending HOP Approval') {
+                actions = `
+                    <button class="action-btn btn-approve" onclick="approveRequest('${request.id}')">✅ Approve</button>
+                    <button class="action-btn btn-reject" onclick="rejectRequest('${request.id}')">❌ Reject</button>
+                `;
+            } else if (userRole === 'fpr' && request.status === 'Approved by HOP - Pending FPR') {
+                actions = `
+                    <button class="action-btn btn-approve" onclick="finalizeRequest('${request.id}')">✅ Finalize</button>
+                    <button class="action-btn export-btn" onclick="exportToExcel('${request.id}')">📁 Export</button>
+                    <button class="action-btn email-btn" onclick="sendEmail('${request.id}')">📧 Email</button>
+                `;
+            }
+            
+            card.innerHTML = `
+                <div class="request-card-header">
+                    <div class="request-id-badge">${request.id}</div>
+                    <div class="request-priority ${priorityClass}">${request.priority}</div>
+                </div>
+                <div class="request-card-body">
+                    <div class="request-title">${request.briefTitle}</div>
+                    <div class="request-meta">
+                        <span>📅 ${request.deadline}</span>
+                        <span>🏢 ${request.vertical}</span>
+                        <span>${statusEmoji} ${request.status}</span>
+                    </div>
+                </div>
+                <div class="request-actions">
+                    <button class="action-btn btn-view" onclick="viewRequest('${request.id}')">👁️ View</button>
+                    ${actions}
+                </div>
+            `;
+            
+            return card;
+        }
+
+        function getStatusEmoji(status) {
+            const emojis = {
+                'Pending HOP Approval': '⏳',
+                'Approved by HOP - Pending FPR': '✅',
+                'Completed by FPR': '🎉',
+                'Rejected by HOP': '❌'
+            };
+            return emojis[status] || '📋';
+        }
+
+        // REQUEST ACTIONS
+        function viewRequest(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+
+            let fileDetails = '';
+            if (request.attachedFiles && request.attachedFiles.length > 0) {
+                fileDetails = '<h5>📎 Attached Files:</h5><ul>';
+                request.attachedFiles.forEach(file => {
+                    const sizeKB = Math.round(file.size / 1024);
+                    const sizeText = sizeKB > 1024 ? `${Math.round(sizeKB/1024)} MB` : `${sizeKB} KB`;
+                    fileDetails += `<li>${file.name} (${sizeText})</li>`;
+                });
+                fileDetails += '</ul>';
+            }
+
+            document.getElementById('modal-body').innerHTML = `
+                <div style="text-align: center; background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h3>${request.id}</h3>
+                </div>
+                <h4>Request Details:</h4>
+                <p><strong>Vertical:</strong> ${request.vertical}</p>
+                <p><strong>Program:</strong> ${request.programName}</p>
+                <p><strong>Request Type:</strong> ${request.requestType}</p>
+                <p><strong>Priority:</strong> ${request.priority}</p>
+                <p><strong>Title:</strong> ${request.briefTitle}</p>
+                <p><strong>Deadline:</strong> ${request.deadline}</p>
+                <p><strong>Description:</strong> ${request.contentDescription}</p>
+                <p><strong>Additional Notes:</strong> ${request.additionalNotes || 'None'}</p>
+                ${fileDetails}
+                <p><strong>Status:</strong> ${request.status}</p>
+                <p><strong>Submission Date:</strong> ${request.hodSubmissionDate}</p>
+                ${request.hopComments ? `<p><strong>HOP Comments:</strong> ${request.hopComments}</p>` : ''}
+                ${request.hopApprovalDate ? `<p><strong>HOP Approval Date:</strong> ${request.hopApprovalDate}</p>` : ''}
+                ${request.fprComments ? `<p><strong>FPR Comments:</strong> ${request.fprComments}</p>` : ''}
+                ${request.fprCompletionDate ? `<p><strong>FPR Completion Date:</strong> ${request.fprCompletionDate}</p>` : ''}
+            `;
+
+            document.getElementById('request-modal').style.display = 'block';
+        }
+
+        function approveRequest(requestId) {
+            const comments = prompt('Enter approval comments (optional):');
+            if (comments === null) return;
+            
+            const request = allRequests.find(req => req.id === requestId);
+            if (request) {
+                request.hopComments = comments || '';
+                request.status = 'Approved by HOP - Pending FPR';
+                request.hopApprovalDate = new Date().toISOString().split('T')[0];
+                
+                saveData();
+                updateLists();
+                alert('✅ Request approved successfully!');
+            }
+        }
+
+        function rejectRequest(requestId) {
+            const comments = prompt('Enter rejection reason:');
+            if (!comments) {
+                alert('Rejection reason is required.');
+                return;
+            }
+            
+            const request = allRequests.find(req => req.id === requestId);
+            if (request) {
+                request.hopComments = comments;
+                request.status = 'Rejected by HOP';
+                request.hopRejectionDate = new Date().toISOString().split('T')[0];
+                
+                saveData();
+                updateLists();
+                alert('❌ Request rejected.');
+            }
+        }
+
+        function finalizeRequest(requestId) {
+            const comments = prompt('Enter FPR processing notes (optional):');
+            if (comments === null) return;
+            
+            const request = allRequests.find(req => req.id === requestId);
+            if (request) {
+                request.fprComments = comments || '';
+                request.status = 'Completed by FPR';
+                request.fprCompletionDate = new Date().toISOString().split('T')[0];
+                
+                saveData();
+                updateLists();
+                alert('🎉 Request finalized successfully!');
+            }
+        }
+
+        function exportToExcel(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+
+            const worksheetData = [
+                ['Field', 'Value'],
+                ['Request ID', request.id],
+                ['Vertical Name', request.vertical],
+                ['Program Type', request.programName],
+                ['Request Type', request.requestType],
+                ['Brief Title', request.briefTitle],
+                ['Content Description', request.contentDescription],
+                ['Priority Level', request.priority],
+                ['Expected Deadline', request.deadline],
+                ['Additional Notes', request.additionalNotes || 'None'],
+                ['HOD Submission Date', request.hodSubmissionDate],
+                ['HOP Comments', request.hopComments || 'None'],
+                ['HOP Approval Date', request.hopApprovalDate || 'N/A'],
+                ['FPR Comments', request.fprComments || 'None'],
+                ['FPR Completion Date', request.fprCompletionDate || 'N/A'],
+                ['Current Status', request.status]
+            ];
+
+            if (request.attachedFiles && request.attachedFiles.length > 0) {
+                worksheetData.push(['', '']);
+                worksheetData.push(['Attached Files', 'File Details']);
+                request.attachedFiles.forEach(file => {
+                    const sizeKB = Math.round(file.size / 1024);
+                    const sizeText = sizeKB > 1024 ? `${Math.round(sizeKB/1024)} MB` : `${sizeKB} KB`;
+                    worksheetData.push([file.name, `Size: ${sizeText}, Type: ${file.type}`]);
+                });
+            }
+
+            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Content Request');
+            
+            const fileName = `Content_Request_${request.id}_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(workbook, fileName);
+            
+            alert(`✅ Excel file exported: ${fileName}`);
+        }
+
+        function sendEmail(requestId) {
+            const request = allRequests.find(req => req.id === requestId);
+            if (!request) return;
+
+            const subject = `Content Request: ${request.briefTitle} (${request.id})`;
+            
+            let fileList = '';
+            if (request.attachedFiles && request.attachedFiles.length > 0) {
+                fileList = '\n\nAttached Files:\n';
+                request.attachedFiles.forEach(file => {
+                    const sizeKB = Math.round(file.size / 1024);
+                    const sizeText = sizeKB > 1024 ? `${Math.round(sizeKB/1024)} MB` : `${sizeKB} KB`;
+                    fileList += `- ${file.name} (${sizeText})\n`;
+                });
+                fileList += '\n(Note: Please manually attach these files to this email)';
+            }
+
+            const body = `Dear Content Team,
+
+Please find below the approved content request details:
+
+Request ID: ${request.id}
+Vertical: ${request.vertical}
+Program: ${request.programName}
+Request Type: ${request.requestType}
+Priority: ${request.priority}
+Title: ${request.briefTitle}
+Deadline: ${request.deadline}
+
+Description:
+${request.contentDescription}
+
+Additional Notes:
+${request.additionalNotes || 'None'}
+
+HOP Comments:
+${request.hopComments || 'None'}
+
+FPR Comments:
+${request.fprComments || 'None'}
+
+Status: ${request.status}
+Submission Date: ${request.hodSubmissionDate}
+Approval Date: ${request.hopApprovalDate || 'N/A'}
+Completion Date: ${request.fprCompletionDate || 'N/A'}${fileList}
+
+Please find the detailed Excel report attached.
+
+Best regards,
+Content Management System`;
+
+            const recipients = 'mandar.deshpande@manipal.edu;lobo.freena@manipal.edu';
+            const mailtoLink = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            
+            window.location.href = mailtoLink;
+            alert('📧 Email client opened with pre-filled content for both recipients.');
+        }
+
+        function closeModal() {
+            document.getElementById('request-modal').style.display = 'none';
+        }
+
+        // Setup import file handler
+        document.getElementById('import-file-input').onchange = function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.allRequests && data.requestCounters) {
+                        allRequests = data.allRequests;
+                        requestCounters = { ...requestCounters, ...data.requestCounters };
+                        usedRequestIds = new Set(data.usedRequestIds || []);
+                        saveData();
+                        updateLists();
+                        alert('✅ Data imported successfully!');
+                    } else {
+                        alert('❌ Invalid file format.');
+                    }
+                } catch (error) {
+                    alert('❌ Error reading file.');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        };
+
+        // INITIALIZE EVERYTHING
+        function initialize() {
+            loadData();
+            setupFileUpload();
+            setupForm();
+            updateLists();
+        }
+
+        // Start initialization
+        setTimeout(initialize, 100);
+        document.addEventListener('DOMContentLoaded', initialize);
+        window.addEventListener('load', initialize);
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('request-modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+    </script>
+</body>
+</html>
