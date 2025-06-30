@@ -1,809 +1,4 @@
-        // HOP users
-            'AxisBank_HOP': { password: 'AxisBank@123', role: 'hop', name: 'Axis Bank HOP', department: 'axis-bank' },
-            'HDFCBank_HOP': { password: 'HDFCBank@123', role: 'hop', name: 'HDFC Bank HOP', department: 'hdfc-bank' },
-            'ICICIBank_HOP': { password: 'ICICIBank@123', role: 'hop', name: 'ICICI Bank HOP', department: 'icici-bank' },
-            'KotakBank_HOP': { password: 'KotakBank@123', role: 'hop', name: 'Kotak Bank HOP', department: 'kotak-bank' },
-            'IDFCFirstBank_HOP': { password: 'IDFCFirstBank@123', role: 'hop', name: 'IDFC First Bank HOP', department: 'idfc-first-bank' },
-            'FederalBank_HOP': { password: 'FederalBank@123', role: 'hop', name: 'Federal Bank HOP', department: 'federal-bank' },
-            'TMB_HOP': { password: 'TMB@123', role: 'hop', name: 'TMB HOP', department: 'tmb' },
-            'IDBI_HOP': { password: 'IDBI@123', role: 'hop', name: 'IDBI HOP', department: 'idbi' },
-            'BOI_HOP': { password: 'BOI@123', role: 'hop', name: 'BOI HOP', department: 'boi' },
-            'CBI_HOP': { password: 'CBI@123', role: 'hop', name: 'CBI HOP', department: 'cbi' },
-            
-            // Content FPR users
-            'Content_FPR': { password: 'Content@123', role: 'content-fpr', name: 'Content FPR Manager', department: 'content-team' }
-        };
-
-        let currentUser = null;
-        let requestCounter = 1;
-        let uploadedFiles = [];
-        let allRequests = JSON.parse(localStorage.getItem('contentprojects_requests') || '[]');
-
-        // Department configuration
-        const departments = {
-            'axis-bank': { name: 'Axis Bank', prefix: 'AXIS' },
-            'hdfc-bank': { name: 'HDFC Bank', prefix: 'HDFC' },
-            'icici-bank': { name: 'ICICI Bank', prefix: 'ICICI' },
-            'kotak-bank': { name: 'Kotak Bank', prefix: 'KOTAK' },
-            'idfc-first-bank': { name: 'IDFC First Bank', prefix: 'IDFC' },
-            'federal-bank': { name: 'Federal Bank', prefix: 'FED' },
-            'tmb': { name: 'TMB', prefix: 'TMB' },
-            'idbi': { name: 'IDBI', prefix: 'IDBI' },
-            'boi': { name: 'BOI', prefix: 'BOI' },
-            'cbi': { name: 'CBI', prefix: 'CBI' }
-        };
-
-        // Utility functions
-        function showMessage(message, isError = false) {
-            const errorDiv = document.getElementById('errorMessage');
-            const successDiv = document.getElementById('successMessage');
-            
-            if (isError) {
-                errorDiv.textContent = message;
-                errorDiv.style.display = 'block';
-                successDiv.style.display = 'none';
-            } else {
-                successDiv.textContent = message;
-                successDiv.style.display = 'block';
-                errorDiv.style.display = 'none';
-            }
-            
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-                successDiv.style.display = 'none';
-            }, 5000);
-        }
-
-        function hideAllSections() {
-            document.querySelectorAll('.app-section').forEach(section => {
-                section.classList.remove('active');
-            });
-        }
-
-        function showSection(sectionId) {
-            hideAllSections();
-            document.getElementById(sectionId).classList.add('active');
-        }
-
-        // Authentication
-        function authenticateUser(username, password) {
-            const user = users[username];
-            
-            if (!user) {
-                return { success: false, message: 'Invalid username' };
-            }
-            
-            if (user.password !== password) {
-                return { success: false, message: 'Invalid password' };
-            }
-            
-            return { success: true, user: user };
-        }
-
-        // Login form handler
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            
-            if (!username || !password) {
-                showMessage('Please fill in all fields', true);
-                return;
-            }
-            
-            const result = authenticateUser(username, password);
-            
-            if (result.success) {
-                currentUser = result.user;
-                currentUser.username = username;
-                showMessage(`Welcome ${result.user.name}! Loading your console...`);
-                
-                setTimeout(() => {
-                    switch(result.user.role) {
-                        case 'hod':
-                            initializeHodConsole();
-                            showSection('hodSection');
-                            break;
-                        case 'hop':
-                            initializeHopConsole();
-                            showSection('hopSection');
-                            break;
-                        case 'content-fpr':
-                            initializeContentConsole();
-                            showSection('contentSection');
-                            break;
-                    }
-                }, 1500);
-            } else {
-                showMessage(result.message, true);
-            }
-        });
-
-        // HOD Console Functions
-        function initializeHodConsole() {
-            document.getElementById('hodUserInfo').textContent = 
-                `Welcome ${currentUser.name} | Department: ${departments[currentUser.department].name}`;
-            
-            setupHodDepartment();
-            initializeHodFileUpload();
-            loadHodStats();
-            loadHodRequests();
-        }
-
-        function setupHodDepartment() {
-            const departmentSelect = document.getElementById('hodDepartment');
-            const userDept = currentUser.department;
-            const deptInfo = departments[userDept];
-            
-            departmentSelect.innerHTML = `<option value="${userDept}">${deptInfo.name}</option>`;
-            departmentSelect.value = userDept;
-            
-            // Generate request ID immediately when department is set
-            generateHodRequestId();
-            
-            // Add event listener for any future changes
-            departmentSelect.addEventListener('change', generateHodRequestId);
-        }
-
-        function generateHodRequestId() {
-            const department = document.getElementById('hodDepartment').value;
-            console.log('Generating request ID for department:', department); // Debug log
-            
-            if (!department) {
-                document.getElementById('hodRequestId').value = '';
-                return;
-            }
-            
-            const prefix = departments[department].prefix;
-            const year = new Date().getFullYear();
-            const nextNumber = getNextRequestNumber(department);
-            const requestId = `${prefix}-${year}-${String(nextNumber).padStart(4, '0')}`;
-            
-            console.log('Generated request ID:', requestId); // Debug log
-            document.getElementById('hodRequestId').value = requestId;
-        }
-
-        function getNextRequestNumber(department) {
-            const prefix = departments[department].prefix;
-            const year = new Date().getFullYear();
-            const existingRequests = allRequests.filter(req => 
-                req.requestId.startsWith(`${prefix}-${year}`)
-            );
-            return existingRequests.length + 1;
-        }
-
-        function initializeHodFileUpload() {
-            const fileUpload = document.getElementById('hodFileUpload');
-            const fileInput = document.getElementById('hodFileInput');
-            const uploadedFilesDiv = document.getElementById('hodUploadedFiles');
-
-            fileUpload.addEventListener('click', () => fileInput.click());
-            
-            fileInput.addEventListener('change', (e) => {
-                handleHodFiles(e.target.files);
-            });
-
-            function handleHodFiles(files) {
-                Array.from(files).forEach(file => {
-                    if (file.size <= 10 * 1024 * 1024) {
-                        uploadedFiles.push(file);
-                        displayHodUploadedFile(file);
-                    } else {
-                        alert(`File ${file.name} is too large. Maximum size is 10MB.`);
-                    }
-                });
-            }
-
-            function displayHodUploadedFile(file) {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <span>📎 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)</span>
-                    <span class="file-remove" onclick="removeHodFile('${file.name}')">✕</span>
-                `;
-                uploadedFilesDiv.appendChild(fileItem);
-            }
-
-            window.removeHodFile = function(fileName) {
-                uploadedFiles = uploadedFiles.filter(file => file.name !== fileName);
-                refreshHodFileDisplay();
-            };
-
-            function refreshHodFileDisplay() {
-                uploadedFilesDiv.innerHTML = '';
-                uploadedFiles.forEach(file => displayHodUploadedFile(file));
-            }
-        }
-
-        function loadHodStats() {
-            const userRequests = allRequests.filter(req => req.submittedBy === currentUser.username);
-            const pendingRequests = userRequests.filter(req => req.status === 'pending');
-            const approvedRequests = userRequests.filter(req => req.status === 'approved');
-            const thisMonth = userRequests.filter(req => {
-                const reqDate = new Date(req.submittedDate);
-                const now = new Date();
-                return reqDate.getMonth() === now.getMonth() && reqDate.getFullYear() === now.getFullYear();
-            });
-
-            document.getElementById('hodMyRequests').textContent = userRequests.length;
-            document.getElementById('hodPendingRequests').textContent = pendingRequests.length;
-            document.getElementById('hodApprovedRequests').textContent = approvedRequests.length;
-            document.getElementById('hodThisMonth').textContent = thisMonth.length;
-        }
-
-        function loadHodRequests() {
-            const userRequests = allRequests.filter(req => req.submittedBy === currentUser.username);
-            const requestsList = document.getElementById('hodRequestsList');
-            
-            if (userRequests.length === 0) {
-                requestsList.innerHTML = '<div style="text-align: center; color: #666; padding: 20px;">No requests found</div>';
-                return;
-            }
-
-            requestsList.innerHTML = userRequests.map(req => `
-                <div class="request-card">
-                    <div class="request-header">
-                        <span class="request-id">${req.requestId}</span>
-                        <span class="status-badge status-${req.status}">${req.status}</span>
-                    </div>
-                    <div style="font-size: 14px; color: #666; margin-bottom: 10px;">
-                        ${req.title} - ${req.priority} Priority<br>
-                        Submitted: ${new Date(req.submittedDate).toLocaleDateString()}
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-primary btn-small" onclick="viewRequest('${req.requestId}')">View</button>
-                        ${req.status === 'pending' ? `<button class="btn btn-warning btn-small" onclick="editRequest('${req.requestId}')">Edit</button>` : ''}
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // HOD Form submission
-        document.getElementById('hodForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-            
-            if (!data.requestId) {
-                alert('Please select a department to generate Request ID');
-                return;
-            }
-
-            const request = {
-                ...data,
-                requestId: data.requestId,
-                submittedBy: currentUser.username,
-                submittedDate: new Date().toISOString(),
-                status: 'pending',
-                files: uploadedFiles.map(f => ({ name: f.name, size: f.size }))
-            };
-
-            allRequests.push(request);
-            localStorage.setItem('contentprojects_requests', JSON.stringify(allRequests));
-            
-            // Send email notification after request submission
-            sendEmailNotification(request, 'submitted');
-            
-            alert('Request submitted successfully! HOP will be notified for approval.');
-            clearHodForm();
-            loadHodStats();
-            loadHodRequests();
-        });
-
-        function clearHodForm() {
-            document.getElementById('hodForm').reset();
-            uploadedFiles = [];
-            document.getElementById('hodUploadedFiles').innerHTML = '';
-            document.getElementById('hodRequestId').value = '';
-            setupHodDepartment();
-        }
-
-        // HOP Console Functions
-        function initializeHopConsole() {
-            document.getElementById('hopUserInfo').textContent = 
-                `Welcome ${currentUser.name} | Department: ${departments[currentUser.department].name}`;
-            
-            loadHopStats();
-            loadHopRequests();
-        }
-
-        function loadHopStats() {
-            const deptRequests = allRequests.filter(req => 
-                req.department === currentUser.department && req.status === 'pending'
-            );
-            const approvedToday = allRequests.filter(req => {
-                const today = new Date().toDateString();
-                return req.department === currentUser.department && 
-                       req.status === 'approved' && 
-                       new Date(req.approvedDate || '').toDateString() === today;
-            });
-            const urgentRequests = deptRequests.filter(req => req.priority === 'high');
-
-            document.getElementById('hopPendingApprovals').textContent = deptRequests.length;
-            document.getElementById('hopApprovedToday').textContent = approvedToday.length;
-            document.getElementById('hopUrgentRequests').textContent = urgentRequests.length;
-            document.getElementById('hopApprovalRate').textContent = '94%';
-        }
-
-        function loadHopRequests() {
-            const deptRequests = allRequests.filter(req => 
-                req.department === currentUser.department && req.status === 'pending'
-            );
-            const requestQueue = document.getElementById('hopRequestQueue');
-            
-            if (deptRequests.length === 0) {
-                requestQueue.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No pending requests for your department</div>';
-                return;
-            }
-
-            requestQueue.innerHTML = deptRequests.map(req => `
-                <div class="request-card ${req.priority === 'high' ? 'urgent' : ''}">
-                    <div class="request-header">
-                        <span class="request-id">${req.requestId}</span>
-                        <span class="priority-badge priority-${req.priority === 'not-urgent' ? 'low' : req.priority}">
-                            ${req.priority === 'not-urgent' ? 'Not Urgent' : req.priority}
-                        </span>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div><strong>Type:</strong> ${req.requestType}</div>
-                        <div><strong>Program:</strong> ${req.programType}</div>
-                        <div><strong>Deadline:</strong> ${new Date(req.deadline).toLocaleDateString()}</div>
-                        <div><strong>Submitted:</strong> ${new Date(req.submittedDate).toLocaleDateString()}</div>
-                    </div>
-
-                    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ed8936;">
-                        <strong>Title:</strong> ${req.title}<br>
-                        <strong>Description:</strong> ${req.description}
-                    </div>
-
-                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <button class="btn btn-success btn-small" onclick="approveRequest('${req.requestId}')">Approve</button>
-                        <button class="btn btn-danger btn-small" onclick="rejectRequest('${req.requestId}')">Reject</button>
-                        <button class="btn btn-warning btn-small" onclick="requestChanges('${req.requestId}')">Request Changes</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function approveRequest(requestId) {
-            const request = allRequests.find(req => req.requestId === requestId);
-            if (request) {
-                request.status = 'approved';
-                request.approvedDate = new Date().toISOString();
-                request.approvedBy = currentUser.username;
-                
-                localStorage.setItem('contentprojects_requests', JSON.stringify(allRequests));
-                
-                // Send email notification and provide repository link
-                sendEmailNotificationWithLink(request, 'approved');
-                
-                alert(`Request ${requestId} approved successfully! Content FPR team has been notified.`);
-                loadHopStats();
-                loadHopRequests();
-            }
-        }
-
-        function rejectRequest(requestId) {
-            const reason = prompt('Please provide a reason for rejection:');
-            if (reason) {
-                const request = allRequests.find(req => req.requestId === requestId);
-                if (request) {
-                    request.status = 'rejected';
-                    request.rejectionReason = reason;
-                    request.rejectedBy = currentUser.username;
-                    request.rejectedDate = new Date().toISOString();
-                    
-                    localStorage.setItem('contentprojects_requests', JSON.stringify(allRequests));
-                    
-                    sendEmailNotification(request, 'rejected');
-                    
-                    alert(`Request ${requestId} rejected successfully!`);
-                    loadHopStats();
-                    loadHopRequests();
-                }
-            }
-        }
-
-        function requestChanges(requestId) {
-            const changes = prompt('Please specify what changes are required:');
-            if (changes) {
-                const request = allRequests.find(req => req.requestId === requestId);
-                if (request) {
-                    request.status = 'changes-requested';
-                    request.changesRequested = changes;
-                    request.changesRequestedBy = currentUser.username;
-                    request.changesRequestedDate = new Date().toISOString();
-                    
-                    localStorage.setItem('contentprojects_requests', JSON.stringify(allRequests));
-                    
-                    sendEmailNotification(request, 'changes-requested');
-                    
-                    alert(`Changes requested for ${requestId} successfully!`);
-                    loadHopStats();
-                    loadHopRequests();
-                }
-            }
-        }
-
-        // Content FPR Console Functions
-        function initializeContentConsole() {
-            document.getElementById('contentUserInfo').textContent = 
-                `Welcome ${currentUser.name} | Content Team`;
-            
-            loadContentStats();
-            loadContentRequests();
-        }
-
-        function loadContentStats() {
-            const approvedRequests = allRequests.filter(req => req.status === 'approved');
-            const urgentRequests = approvedRequests.filter(req => req.priority === 'high');
-            const completedToday = allRequests.filter(req => {
-                const today = new Date().toDateString();
-                return req.status === 'completed' && 
-                       new Date(req.completedDate || '').toDateString() === today;
-            });
-
-            document.getElementById('contentPendingRequests').textContent = approvedRequests.length;
-            document.getElementById('contentUrgentRequests').textContent = urgentRequests.length;
-            document.getElementById('contentCompletedToday').textContent = completedToday.length;
-            document.getElementById('contentProductivity').textContent = '87%';
-        }
-
-        function loadContentRequests() {
-            const approvedRequests = allRequests.filter(req => req.status === 'approved');
-            const requestQueue = document.getElementById('contentRequestQueue');
-            
-            if (approvedRequests.length === 0) {
-                requestQueue.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No pending requests for processing</div>';
-                return;
-            }
-
-            requestQueue.innerHTML = approvedRequests.map(req => `
-                <div class="request-card ${req.priority === 'high' ? 'urgent' : ''}">
-                    <div class="request-header">
-                        <span class="request-id">${req.requestId}</span>
-                        <span class="priority-badge priority-${req.priority === 'not-urgent' ? 'low' : req.priority}">
-                            ${req.priority === 'not-urgent' ? 'Not Urgent' : req.priority}
-                        </span>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div><strong>Department:</strong> ${departments[req.department].name}</div>
-                        <div><strong>Type:</strong> ${req.requestType}</div>
-                        <div><strong>Deadline:</strong> ${new Date(req.deadline).toLocaleDateString()}</div>
-                        <div><strong>Approved:</strong> ${new Date(req.approvedDate).toLocaleDateString()}</div>
-                    </div>
-
-                    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #48bb78;">
-                        <strong>Title:</strong> ${req.title}<br>
-                        <strong>Description:</strong> ${req.description}
-                    </div>
-
-                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <button class="btn btn-success btn-small" onclick="markRequestCompleted('${req.requestId}')">Mark Completed</button>
-                        <button class="btn btn-primary btn-small" onclick="downloadRequestExcel('${req.requestId}')">Download Excel</button>
-                        <button class="btn btn-warning btn-small" onclick="sendRequestNotification('${req.requestId}')">Send Update</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function markRequestCompleted(requestId) {
-            const request = allRequests.find(req => req.requestId === requestId);
-            if (request) {
-                request.status = 'completed';
-                request.completedDate = new Date().toISOString();
-                request.completedBy = currentUser.username;
-                
-                localStorage.setItem('contentprojects_requests', JSON.stringify(allRequests));
-                
-                sendEmailNotification(request, 'completed');
-                
-                alert(`Request ${requestId} marked as completed successfully!`);
-                loadContentStats();
-                loadContentRequests();
-            }
-        }
-
-        // Email and notification functions
-        function sendEmailNotification(request, action) {
-            const subject = `CMS Request ${request.requestId} - ${action.charAt(0).toUpperCase() + action.slice(1)}`;
-            let body = `Dear Team,\n\nRequest ID: ${request.requestId}\nTitle: ${request.title}\nDepartment: ${departments[request.department].name}\nStatus: ${action}\n\n`;
-            
-            switch(action) {
-                case 'submitted':
-                    body += `A new content request has been submitted and is pending HOP approval.\n\nBest regards,\nCMS System`;
-                    break;
-                case 'approved':
-                    body += `The request has been approved by HOP and is now ready for content processing.\n\nBest regards,\nCMS System`;
-                    break;
-                case 'rejected':
-                    body += `The request has been rejected. Reason: ${request.rejectionReason}\n\nBest regards,\nCMS System`;
-                    break;
-                case 'completed':
-                    body += `The content request has been completed successfully.\n\nBest regards,\nCMS System`;
-                    break;
-            }
-            
-            const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            window.open(mailtoLink);
-        }
-
-        function sendEmailNotificationWithLink(request, action) {
-            const repositoryLink = 'https://github.com/Mandar-Manipal/Content-projects';
-            const subject = `CMS Request ${request.requestId} - Approved with Repository Access`;
-            const body = `Dear Content FPR Team,
-
-Request ID: ${request.requestId}
-Title: ${request.title}
-Department: ${departments[request.department].name}
-Status: Approved
-
-The request has been approved by HOP and is now ready for content processing.
-
-Repository Access: ${repositoryLink}
-
-You can access all project files and documentation through the repository link above.
-
-Best regards,
-CMS System`;
-            
-            const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            window.open(mailtoLink);
-        }
-
-        function downloadRequestExcel(requestId) {
-            const request = allRequests.find(req => req.requestId === requestId);
-            if (request) {
-                const csvData = `Request ID,Department,Title,Type,Priority,Status,Submitted Date,Deadline,Description
-${request.requestId},"${departments[request.department].name}","${request.title}","${request.requestType}","${request.priority}","${request.status}","${new Date(request.submittedDate).toLocaleDateString()}","${new Date(request.deadline).toLocaleDateString()}","${request.description}"`;
-
-                const blob = new Blob([csvData], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = `${request.requestId}_details.csv`;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-            }
-        }
-
-        // Admin panel functions (Content FPR only)
-        function toggleAdminPanel() {
-            const panel = document.getElementById('adminPanel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        }
-
-        function addUser(type) {
-            let username, name, department;
-            
-            if (type === 'HOD' || type === 'HOP') {
-                const bankName = prompt('Enter bank name (e.g., AxisBank, HDFCBank):');
-                if (!bankName) return;
-                
-                username = `${bankName}_${type}`;
-                name = `${bankName} ${type}`;
-                department = bankName.toLowerCase().replace('bank', '-bank');
-            } else {
-                username = prompt('Enter username for Content FPR:');
-                if (!username) return;
-                
-                name = prompt('Enter full name:');
-                department = 'content-team';
-            }
-            
-            const password = prompt('Enter password:');
-            if (!password) return;
-            
-            alert(`User ${username} would be added with password: ${password}`);
-        }
-
-        function manageUsers() {
-            alert('User management panel would open here showing all registered users.');
-        }
-
-        function downloadAllData() {
-            const csvData = `Request ID,Department,Title,Type,Priority,Status,Submitted By,Submitted Date,Deadline,Description
-${allRequests.map(req => 
-                `${req.requestId},"${departments[req.department].name}","${req.title}","${req.requestType}","${req.priority}","${req.status}","${req.submittedBy}","${new Date(req.submittedDate).toLocaleDateString()}","${new Date(req.deadline).toLocaleDateString()}","${req.description}"`
-            ).join('\n')}`;
-
-            const blob = new Blob([csvData], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = `cms_all_requests_${new Date().toISOString().split('T')[0]}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-
-        function emailMonthlyReport() {
-            const thisMonth = allRequests.filter(req => {
-                const reqDate = new Date(req.submittedDate);
-                const now = new Date();
-                return reqDate.getMonth() === now.getMonth() && reqDate.getFullYear() === now.getFullYear();
-            });
-
-            const subject = `CMS Monthly Report - ${new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`;
-            const body = `Monthly CMS Report
-
-Total Requests This Month: ${thisMonth.length}
-Pending: ${thisMonth.filter(r => r.status === 'pending').length}
-Approved: ${thisMonth.filter(r => r.status === 'approved').length}
-Completed: ${thisMonth.filter(r => r.status === 'completed').length}
-
-Best regards,
-CMS System`;
-
-            const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            window.open(mailtoLink);
-        }
-
-        function openRepository() {
-            window.open('https://github.com/Mandar-Manipal/Content-projects', '_blank');
-        }
-
-        // Quick action functions
-        function bulkApprove() {
-            const lowPriorityRequests = allRequests.filter(req => 
-                req.department === currentUser.department && 
-                req.status === 'pending' && 
-                req.priority === 'not-urgent'
-            );
-            
-            if (lowPriorityRequests.length === 0) {
-                alert('No low priority requests to approve.');
-                return;
-            }
-
-            if (confirm(`Approve ${lowPriorityRequests.length} low priority requests?`)) {
-                lowPriorityRequests.forEach(req => {
-                    req.status = 'approved';
-                    req.approvedDate = new Date().toISOString();
-                    req.approvedBy = currentUser.username;
-                });
-                
-                localStorage.setItem('contentprojects_requests', JSON.stringify(allRequests));
-                alert(`${lowPriorityRequests.length} requests approved successfully!`);
-                loadHopStats();
-                loadHopRequests();
-            }
-        }
-
-        function generateHopReport() {
-            const deptRequests = allRequests.filter(req => req.department === currentUser.department);
-            const reportData = `HOP Report - ${departments[currentUser.department].name}
-Date: ${new Date().toLocaleDateString()}
-
-Total Requests: ${deptRequests.length}
-Pending: ${deptRequests.filter(r => r.status === 'pending').length}
-Approved: ${deptRequests.filter(r => r.status === 'approved').length}
-Completed: ${deptRequests.filter(r => r.status === 'completed').length}
-
-Recent Activity: Strong workflow management with efficient approval process.`;
-
-            const blob = new Blob([reportData], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = `hop_report_${currentUser.department}_${new Date().toISOString().split('T')[0]}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-
-        function markCompleted() {
-            const pendingRequests = allRequests.filter(req => req.status === 'approved');
-            if (pendingRequests.length === 0) {
-                alert('No pending requests to mark as completed.');
-                return;
-            }
-            
-            const requestId = prompt(`Enter Request ID to mark as completed (Available: ${pendingRequests.map(r => r.requestId).join(', ')}):`);
-            if (requestId) {
-                markRequestCompleted(requestId);
-            }
-        }
-
-        function downloadExcel() {
-            downloadAllData();
-        }
-
-        function sendNotification() {
-            const message = prompt('Enter notification message:');
-            if (message) {
-                alert('Notification sent to all stakeholders!');
-            }
-        }
-
-        function sendRequestNotification(requestId) {
-            const request = allRequests.find(req => req.requestId === requestId);
-            if (request) {
-                const message = prompt('Enter update message:');
-                if (message) {
-                    sendEmailNotification(request, 'update');
-                    alert('Update notification sent successfully!');
-                }
-            }
-        }
-
-        // View and edit functions
-        function viewRequest(requestId) {
-            const request = allRequests.find(req => req.requestId === requestId);
-            if (request) {
-                alert(`Request Details:\n\nID: ${request.requestId}\nTitle: ${request.title}\nDepartment: ${departments[request.department].name}\nType: ${request.requestType}\nPriority: ${request.priority}\nStatus: ${request.status}\nDeadline: ${new Date(request.deadline).toLocaleDateString()}\n\nDescription: ${request.description}`);
-            }
-        }
-
-        function editRequest(requestId) {
-            alert(`Edit functionality for ${requestId} would open here.`);
-        }
-
-        // Logout function
-        function logout() {
-            if (confirm('Are you sure you want to logout?')) {
-                currentUser = null;
-                uploadedFiles = [];
-                document.getElementById('loginForm').reset();
-                showSection('loginSection');
-            }
-        }
-
-        // Initialize page
-        window.addEventListener('load', function() {
-            // Set minimum date to today for deadline fields
-            const today = new Date().toISOString().split('T')[0];
-            if (document.getElementById('hodDeadline')) {
-                document.getElementById('hodDeadline').setAttribute('min', today);
-            }
-        });
-
-        // Ensure request ID is generated when HOD console is initialized
-        function initializeHodConsole() {
-            document.getElementById('hodUserInfo').textContent = 
-                `Welcome ${currentUser.name} | Department: ${departments[currentUser.department].name}`;
-            
-            setupHodDepartment();
-            initializeHodFileUpload();
-            loadHodStats();
-            loadHodRequests();
-            
-            // Force generate request ID after everything is set up
-            setTimeout(() => {
-                generateHodRequestId();
-            }, 100);
-        }
-
-        // Auto-refresh data every 30 seconds for active consoles
-        setInterval(() => {
-            if (currentUser) {
-                switch(currentUser.role) {
-                    case 'hod':
-                        loadHodStats();
-                        loadHodRequests();
-                        break;
-                    case 'hop':
-                        loadHopStats();
-                        loadHopRequests();
-                        break;
-                    case 'content-fpr':
-                        loadContentStats();
-                        loadContentRequests();
-                        break;
-                }
-            }
-        }, 30000);
-    </script>
-</body>
-</html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -828,7 +23,6 @@ Recent Activity: Strong workflow management with efficient approval process.`;
             margin: 0 auto;
         }
 
-        /* Login Screen Styles */
         .login-container {
             background: white;
             padding: 40px;
@@ -853,7 +47,6 @@ Recent Activity: Strong workflow management with efficient approval process.`;
             font-weight: 600;
         }
 
-        /* Header Styles */
         .header {
             background: white;
             padding: 20px;
@@ -881,7 +74,6 @@ Recent Activity: Strong workflow management with efficient approval process.`;
             align-items: center;
         }
 
-        /* Form Styles */
         .form-group {
             margin-bottom: 20px;
             text-align: left;
@@ -924,7 +116,6 @@ Recent Activity: Strong workflow management with efficient approval process.`;
             min-height: 100px;
         }
 
-        /* Button Styles */
         .btn {
             padding: 12px 24px;
             border: none;
@@ -974,7 +165,6 @@ Recent Activity: Strong workflow management with efficient approval process.`;
             margin-top: 30px;
         }
 
-        /* Layout Styles */
         .main-content {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -1004,130 +194,6 @@ Recent Activity: Strong workflow management with efficient approval process.`;
             font-weight: 600;
         }
 
-        /* Request Cards */
-        .request-card {
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-
-        .request-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .request-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .request-id {
-            font-weight: bold;
-            color: #2d3748;
-        }
-
-        .priority-badge, .status-badge {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-            text-transform: uppercase;
-        }
-
-        .priority-high {
-            background: #fed7d7;
-            color: #c53030;
-        }
-
-        .priority-medium {
-            background: #fef5e7;
-            color: #b7791f;
-        }
-
-        .priority-low {
-            background: #c6f6d5;
-            color: #2f855a;
-        }
-
-        .status-pending {
-            background: #fef5e7;
-            color: #b7791f;
-        }
-
-        .status-approved {
-            background: #c6f6d5;
-            color: #2f855a;
-        }
-
-        .status-rejected {
-            background: #fed7d7;
-            color: #c53030;
-        }
-
-        /* File Upload */
-        .file-upload {
-            border: 2px dashed #cbd5e0;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .file-upload:hover {
-            border-color: #667eea;
-            background-color: #f7fafc;
-        }
-
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background: #f7fafc;
-            border-radius: 6px;
-            margin-bottom: 5px;
-        }
-
-        .file-remove {
-            color: #e53e3e;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        /* Admin Panel Styles */
-        .admin-controls {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .control-card {
-            background: #f7fafc;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            border: 2px solid #e2e8f0;
-            transition: all 0.3s;
-            cursor: pointer;
-        }
-
-        .control-card:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-        }
-
-        .control-icon {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        /* Statistics */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -1162,33 +228,6 @@ Recent Activity: Strong workflow management with efficient approval process.`;
             letter-spacing: 1px;
         }
 
-        /* Notifications */
-        .notification-item {
-            background: #f7fafc;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .notification-title {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 5px;
-        }
-
-        .notification-text {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .notification-time {
-            font-size: 12px;
-            color: #999;
-            margin-top: 5px;
-        }
-
-        /* Error and Success Messages */
         .error-message {
             background: #fed7d7;
             color: #c53030;
@@ -1207,13 +246,20 @@ Recent Activity: Strong workflow management with efficient approval process.`;
             display: none;
         }
 
-        /* Responsive Design */
+        .app-section {
+            display: none;
+        }
+
+        .app-section.active {
+            display: block;
+        }
+
         @media (max-width: 768px) {
             .main-content {
                 grid-template-columns: 1fr;
             }
             
-            .form-row, .admin-controls, .stats-grid {
+            .form-row, .stats-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -1222,15 +268,6 @@ Recent Activity: Strong workflow management with efficient approval process.`;
                 gap: 15px;
                 text-align: center;
             }
-        }
-
-        /* Hide sections initially */
-        .app-section {
-            display: none;
-        }
-
-        .app-section.active {
-            display: block;
         }
     </style>
 </head>
@@ -1281,22 +318,22 @@ Recent Activity: Strong workflow management with efficient approval process.`;
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">📋</div>
-                    <div class="stat-number" id="hodMyRequests">0</div>
+                    <div class="stat-number" id="hodMyRequests">5</div>
                     <div class="stat-label">My Requests</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">⏳</div>
-                    <div class="stat-number" id="hodPendingRequests">0</div>
+                    <div class="stat-number" id="hodPendingRequests">2</div>
                     <div class="stat-label">Pending</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">✅</div>
-                    <div class="stat-number" id="hodApprovedRequests">0</div>
+                    <div class="stat-number" id="hodApprovedRequests">3</div>
                     <div class="stat-label">Approved</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">📅</div>
-                    <div class="stat-number" id="hodThisMonth">0</div>
+                    <div class="stat-number" id="hodThisMonth">2</div>
                     <div class="stat-label">This Month</div>
                 </div>
             </div>
@@ -1311,7 +348,7 @@ Recent Activity: Strong workflow management with efficient approval process.`;
                     <form id="hodForm">
                         <div class="form-group">
                             <label for="hodRequestId">Request ID</label>
-                            <input type="text" id="hodRequestId" name="requestId" readonly placeholder="Select department to generate ID">
+                            <input type="text" id="hodRequestId" name="requestId" readonly>
                         </div>
 
                         <div class="form-row">
@@ -1369,28 +406,11 @@ Recent Activity: Strong workflow management with efficient approval process.`;
                             <textarea id="hodDescription" name="description" placeholder="Provide detailed description" required></textarea>
                         </div>
 
-                        <div class="form-group">
-                            <label for="hodNotes">Additional Notes</label>
-                            <textarea id="hodNotes" name="notes" placeholder="Any additional notes"></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <label>File Attachments</label>
-                            <div class="file-upload" id="hodFileUpload">
-                                <div>📎 Click to upload files or drag and drop</div>
-                                <div style="font-size: 14px; color: #666; margin-top: 5px;">
-                                    Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, PNG (Max 10MB each)
-                                </div>
-                                <input type="file" id="hodFileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" style="display: none;">
-                            </div>
-                            <div id="hodUploadedFiles"></div>
-                        </div>
-
                         <div class="button-group">
                             <button type="submit" class="btn btn-primary">
                                 📤 Submit Request
                             </button>
-                            <button type="button" class="btn btn-warning" onclick="clearHodForm()">
+                            <button type="button" class="btn btn-warning" onclick="clearForm()">
                                 🗑️ Clear Form
                             </button>
                         </div>
@@ -1403,81 +423,8 @@ Recent Activity: Strong workflow management with efficient approval process.`;
                             <span>📋</span>
                             <span>My Requests</span>
                         </div>
-                        <div id="hodRequestsList">
-                            <div style="text-align: center; color: #666; padding: 20px;">
-                                No requests found
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- HOP Console -->
-    <div class="app-section" id="hopSection">
-        <div class="container">
-            <div class="header">
-                <div class="header-left">
-                    <h1>✅ HOP Console</h1>
-                    <div class="user-info" id="hopUserInfo">Loading user info...</div>
-                </div>
-                <div class="header-right">
-                    <button class="btn btn-danger" onclick="logout()">
-                        🚪 Logout
-                    </button>
-                </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">⏳</div>
-                    <div class="stat-number" id="hopPendingApprovals">0</div>
-                    <div class="stat-label">Pending Approvals</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">✅</div>
-                    <div class="stat-number" id="hopApprovedToday">0</div>
-                    <div class="stat-label">Approved Today</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">⚡</div>
-                    <div class="stat-number" id="hopUrgentRequests">0</div>
-                    <div class="stat-label">Urgent Requests</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📈</div>
-                    <div class="stat-number" id="hopApprovalRate">0%</div>
-                    <div class="stat-label">Approval Rate</div>
-                </div>
-            </div>
-
-            <div class="main-content">
-                <div class="form-section">
-                    <div class="section-title">
-                        <span>🔍</span>
-                        <span>Requests Pending Approval</span>
-                    </div>
-                    <div id="hopRequestQueue">
-                        <div style="text-align: center; color: #666; padding: 40px;">
-                            No pending requests for your department
-                        </div>
-                    </div>
-                </div>
-
-                <div class="sidebar">
-                    <div class="sidebar-section">
-                        <div class="section-title">
-                            <span>⚡</span>
-                            <span>Quick Actions</span>
-                        </div>
-                        <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <button class="btn btn-success" onclick="bulkApprove()">
-                                ✅ Bulk Approve Low Priority
-                            </button>
-                            <button class="btn btn-warning" onclick="generateHopReport()">
-                                📊 Generate Report
-                            </button>
+                        <div style="text-align: center; color: #666; padding: 20px;">
+                            No requests found
                         </div>
                     </div>
                 </div>
@@ -1494,98 +441,31 @@ Recent Activity: Strong workflow management with efficient approval process.`;
                     <div class="user-info" id="contentUserInfo">Loading user info...</div>
                 </div>
                 <div class="header-right">
-                    <button class="btn btn-primary" onclick="toggleAdminPanel()">
-                        ⚙️ Admin Panel
-                    </button>
                     <button class="btn btn-danger" onclick="logout()">
                         🚪 Logout
                     </button>
                 </div>
             </div>
 
-            <!-- Admin Panel (only visible to Content FPR) -->
-            <div id="adminPanel" style="display: none;">
-                <div class="form-section" style="margin-bottom: 20px;">
-                    <div class="section-title">
-                        <span>👥</span>
-                        <span>User Management</span>
-                    </div>
-                    
-                    <div class="admin-controls">
-                        <div class="control-card" onclick="addUser('HOD')">
-                            <div class="control-icon">👨‍💼</div>
-                            <div>Add HOD User</div>
-                        </div>
-                        <div class="control-card" onclick="addUser('HOP')">
-                            <div class="control-icon">👩‍💼</div>
-                            <div>Add HOP User</div>
-                        </div>
-                        <div class="control-card" onclick="addUser('Content')">
-                            <div class="control-icon">📝</div>
-                            <div>Add Content FPR</div>
-                        </div>
-                        <div class="control-card" onclick="manageUsers()">
-                            <div class="control-icon">⚙️</div>
-                            <div>Manage Users</div>
-                        </div>
-                    </div>
-
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-icon">👥</div>
-                            <div class="stat-number" id="totalUsers">24</div>
-                            <div class="stat-label">Total Users</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">📋</div>
-                            <div class="stat-number" id="totalRequests">156</div>
-                            <div class="stat-label">Total Requests</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">⏳</div>
-                            <div class="stat-number" id="pendingRequests">23</div>
-                            <div class="stat-label">Pending Processing</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-icon">✅</div>
-                            <div class="stat-number" id="completedRequests">98</div>
-                            <div class="stat-label">Completed</div>
-                        </div>
-                    </div>
-
-                    <div style="display: flex; gap: 15px; margin-top: 20px;">
-                        <button class="btn btn-primary" onclick="downloadAllData()">
-                            📥 Download All Data
-                        </button>
-                        <button class="btn btn-warning" onclick="emailMonthlyReport()">
-                            📧 Email Monthly Report
-                        </button>
-                        <button class="btn btn-success" onclick="openRepository()">
-                            🔗 Access Repository
-                        </button>
-                    </div>
-                </div>
-            </div>
-
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon">⏳</div>
-                    <div class="stat-number" id="contentPendingRequests">0</div>
+                    <div class="stat-number">3</div>
                     <div class="stat-label">Pending Requests</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">🔥</div>
-                    <div class="stat-number" id="contentUrgentRequests">0</div>
+                    <div class="stat-number">1</div>
                     <div class="stat-label">Urgent Requests</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">✅</div>
-                    <div class="stat-number" id="contentCompletedToday">0</div>
+                    <div class="stat-number">5</div>
                     <div class="stat-label">Completed Today</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon">📈</div>
-                    <div class="stat-number" id="contentProductivity">0%</div>
+                    <div class="stat-number">87%</div>
                     <div class="stat-label">Productivity</div>
                 </div>
             </div>
@@ -1596,10 +476,8 @@ Recent Activity: Strong workflow management with efficient approval process.`;
                         <span>📋</span>
                         <span>Requests for Processing</span>
                     </div>
-                    <div id="contentRequestQueue">
-                        <div style="text-align: center; color: #666; padding: 40px;">
-                            No pending requests for processing
-                        </div>
+                    <div style="text-align: center; color: #666; padding: 40px;">
+                        No pending requests for processing
                     </div>
                 </div>
 
@@ -1610,13 +488,13 @@ Recent Activity: Strong workflow management with efficient approval process.`;
                             <span>Quick Actions</span>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 10px;">
-                            <button class="btn btn-success" onclick="markCompleted()">
+                            <button class="btn btn-success">
                                 ✅ Mark as Completed
                             </button>
-                            <button class="btn btn-primary" onclick="downloadExcel()">
+                            <button class="btn btn-primary">
                                 📊 Download Excel
                             </button>
-                            <button class="btn btn-warning" onclick="sendNotification()">
+                            <button class="btn btn-warning">
                                 📧 Send Notification
                             </button>
                         </div>
@@ -1626,20 +504,195 @@ Recent Activity: Strong workflow management with efficient approval process.`;
         </div>
     </div>
 
-    <script>
-        // User database with new login structure
-        const users = {
-            // HOD users
-            'AxisBank_HOD': { password: 'AxisBank@123', role: 'hod', name: 'Axis Bank HOD', department: 'axis-bank' },
-            'HDFCBank_HOD': { password: 'HDFCBank@123', role: 'hod', name: 'HDFC Bank HOD', department: 'hdfc-bank' },
-            'ICICIBank_HOD': { password: 'ICICIBank@123', role: 'hod', name: 'ICICI Bank HOD', department: 'icici-bank' },
-            'KotakBank_HOD': { password: 'KotakBank@123', role: 'hod', name: 'Kotak Bank HOD', department: 'kotak-bank' },
-            'IDFCFirstBank_HOD': { password: 'IDFCFirstBank@123', role: 'hod', name: 'IDFC First Bank HOD', department: 'idfc-first-bank' },
-            'FederalBank_HOD': { password: 'FederalBank@123', role: 'hod', name: 'Federal Bank HOD', department: 'federal-bank' },
-            'TMB_HOD': { password: 'TMB@123', role: 'hod', name: 'TMB HOD', department: 'tmb' },
-            'IDBI_HOD': { password: 'IDBI@123', role: 'hod', name: 'IDBI HOD', department: 'idbi' },
-            'BOI_HOD': { password: 'BOI@123', role: 'hod', name: 'BOI HOD', department: 'boi' },
-            'CBI_HOD': { password: 'CBI@123', role: 'hod', name: 'CBI HOD', department: 'cbi' },
-            
-            // HOP users
-            'AxisBank_HOP': {
+<script type="text/javascript">
+// User database
+const users = {
+    'AxisBank_HOD': { password: 'AxisBank@123', role: 'hod', name: 'Axis Bank HOD', department: 'axis-bank' },
+    'HDFCBank_HOD': { password: 'HDFCBank@123', role: 'hod', name: 'HDFC Bank HOD', department: 'hdfc-bank' },
+    'ICICIBank_HOD': { password: 'ICICIBank@123', role: 'hod', name: 'ICICI Bank HOD', department: 'icici-bank' },
+    'KotakBank_HOD': { password: 'KotakBank@123', role: 'hod', name: 'Kotak Bank HOD', department: 'kotak-bank' },
+    'AxisBank_HOP': { password: 'AxisBank@123', role: 'hop', name: 'Axis Bank HOP', department: 'axis-bank' },
+    'HDFCBank_HOP': { password: 'HDFCBank@123', role: 'hop', name: 'HDFC Bank HOP', department: 'hdfc-bank' },
+    'ICICIBank_HOP': { password: 'ICICIBank@123', role: 'hop', name: 'ICICI Bank HOP', department: 'icici-bank' },
+    'KotakBank_HOP': { password: 'KotakBank@123', role: 'hop', name: 'Kotak Bank HOP', department: 'kotak-bank' },
+    'Content_FPR': { password: 'Content@123', role: 'content-fpr', name: 'Content FPR Manager', department: 'content-team' }
+};
+
+let currentUser = null;
+
+const departments = {
+    'axis-bank': { name: 'Axis Bank', prefix: 'AXIS' },
+    'hdfc-bank': { name: 'HDFC Bank', prefix: 'HDFC' },
+    'icici-bank': { name: 'ICICI Bank', prefix: 'ICICI' },
+    'kotak-bank': { name: 'Kotak Bank', prefix: 'KOTAK' }
+};
+
+function showMessage(message, isError) {
+    const errorDiv = document.getElementById('errorMessage');
+    const successDiv = document.getElementById('successMessage');
+    
+    if (isError) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        successDiv.style.display = 'none';
+    } else {
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+        errorDiv.style.display = 'none';
+    }
+    
+    setTimeout(function() {
+        errorDiv.style.display = 'none';
+        successDiv.style.display = 'none';
+    }, 5000);
+}
+
+function hideAllSections() {
+    const sections = document.querySelectorAll('.app-section');
+    for (let i = 0; i < sections.length; i++) {
+        sections[i].classList.remove('active');
+    }
+}
+
+function showSection(sectionId) {
+    hideAllSections();
+    document.getElementById(sectionId).classList.add('active');
+}
+
+function authenticateUser(username, password) {
+    const user = users[username];
+    
+    if (!user) {
+        return { success: false, message: 'Invalid username' };
+    }
+    
+    if (user.password !== password) {
+        return { success: false, message: 'Invalid password' };
+    }
+    
+    return { success: true, user: user };
+}
+
+function initializeHodConsole() {
+    document.getElementById('hodUserInfo').textContent = 
+        'Welcome ' + currentUser.name + ' | Department: ' + departments[currentUser.department].name;
+    
+    setupHodDepartment();
+    generateHodRequestId();
+}
+
+function setupHodDepartment() {
+    const departmentSelect = document.getElementById('hodDepartment');
+    const userDept = currentUser.department;
+    const deptInfo = departments[userDept];
+    
+    departmentSelect.innerHTML = '<option value="' + userDept + '">' + deptInfo.name + '</option>';
+    departmentSelect.value = userDept;
+}
+
+function generateHodRequestId() {
+    const department = document.getElementById('hodDepartment').value;
+    
+    if (!department) {
+        document.getElementById('hodRequestId').value = '';
+        return;
+    }
+    
+    const prefix = departments[department].prefix;
+    const year = new Date().getFullYear();
+    const requestId = prefix + '-' + year + '-0001';
+    
+    document.getElementById('hodRequestId').value = requestId;
+}
+
+function initializeContentConsole() {
+    document.getElementById('contentUserInfo').textContent = 
+        'Welcome ' + currentUser.name + ' | Content Team';
+}
+
+function clearForm() {
+    document.getElementById('hodForm').reset();
+    setupHodDepartment();
+    generateHodRequestId();
+}
+
+function logout() {
+    if (confirm('Are you sure you want to logout?')) {
+        currentUser = null;
+        document.getElementById('loginForm').reset();
+        showSection('loginSection');
+    }
+}
+
+// Login form handler
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    
+    if (!username || !password) {
+        showMessage('Please fill in all fields', true);
+        return;
+    }
+    
+    const result = authenticateUser(username, password);
+    
+    if (result.success) {
+        currentUser = result.user;
+        currentUser.username = username;
+        showMessage('Welcome ' + result.user.name + '! Loading your console...');
+        
+        setTimeout(function() {
+            switch(result.user.role) {
+                case 'hod':
+                    initializeHodConsole();
+                    showSection('hodSection');
+                    break;
+                case 'hop':
+                    // initializeHopConsole();
+                    showSection('hodSection'); // Using HOD section for demo
+                    break;
+                case 'content-fpr':
+                    initializeContentConsole();
+                    showSection('contentSection');
+                    break;
+            }
+        }, 1500);
+    } else {
+        showMessage(result.message, true);
+    }
+});
+
+// HOD Form submission
+document.getElementById('hodForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const data = {};
+    for (let pair of formData.entries()) {
+        data[pair[0]] = pair[1];
+    }
+    
+    if (!data.requestId) {
+        alert('Please select a department to generate Request ID');
+        return;
+    }
+
+    alert('Request submitted successfully! HOP will be notified for approval.');
+    clearForm();
+});
+
+// Initialize
+window.addEventListener('load', function() {
+    const today = new Date().toISOString().split('T')[0];
+    const deadlineInput = document.getElementById('hodDeadline');
+    if (deadlineInput) {
+        deadlineInput.setAttribute('min', today);
+    }
+});
+</script>
+
+</body>
+</html>
+           
