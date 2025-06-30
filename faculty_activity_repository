@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Activity Repository</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .back-link {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .search-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e6ed;
+            border-radius: 50px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .clear-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .upload-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 15px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .upload-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .template-btn {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .template-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 193, 7, 0.3);
+        }
+
+        .upload-info {
+            color: #6c757d;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+
+        .upload-status {
+            margin-top: 15px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .upload-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .upload-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 25px;
+            background: white;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .filter-select:focus {
+            border-color: #667eea;
+        }
+
+        .stats-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+
+        .activity-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 30px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #f8f9fa;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .section-toggle {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .section-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .activity-form {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .activity-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+        }
+
+        .btn-export {
+            background: linear-gradient(135deg, #ff6b6b, #ffa726);
+            color: white;
+            font-size: 18px;
+            padding: 15px 30px;
+            margin: 30px auto;
+            display: block;
+        }
+
+        .activities-list {
+            margin-top: 20px;
+        }
+
+        .activity-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .activity-title {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .activity-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .activity-detail {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+
+        .activity-description {
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .section-a { border-left-color: #e74c3c; }
+        .section-b { border-left-color: #3498db; }
+        .section-c { border-left-color: #f39c12; }
+        .section-d { border-left-color: #9b59b6; }
+        .section-e { border-left-color: #1abc9c; }
+        .section-f { border-left-color: #34495e; }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .activity-sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Portfolio</a>
+        
+        <div class="header">
+            <h1>📚 Faculty Activity Repository</h1>
+            <p>Comprehensive, Structured Repository of Faculty Activities</p>
+        </div>
+
+        <div class="stats-container">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalActivities">0</div>
+                    <div class="stat-label">Total Activities</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="basicCount">0</div>
+                    <div class="stat-label">Basic Level</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="intermediateCount">0</div>
+                    <div class="stat-label">Intermediate Level</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="advancedCount">0</div>
+                    <div class="stat-label">Advanced Level</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-input-group">
+                <input type="text" class="search-box" id="searchBox" placeholder="Search activities by title, skill type, complexity, or description...">
+                <button class="search-btn" onclick="performSearch()">🔍 Search</button>
+                <button class="clear-btn" onclick="clearSearch()">✖ Clear</button>
+            </div>
+            <div class="upload-section">
+                <div class="upload-group">
+                    <input type="file" id="excelUpload" accept=".xlsx,.xls" style="display: none;" onchange="handleExcelUpload(event)">
+                    <button class="upload-btn" onclick="document.getElementById('excelUpload').click()">📤 Upload Excel</button>
+                    <button class="template-btn" onclick="downloadTemplate()">📋 Download Template</button>
+                    <span class="upload-info">Upload activities from Excel file</span>
+                </div>
+            </div>
+            <div class="filters">
+                <select class="filter-select" id="skillFilter">
+                    <option value="">All Skill Types</option>
+                    <option value="Cognitive">Cognitive</option>
+                    <option value="Interpersonal">Interpersonal</option>
+                    <option value="Technical">Technical</option>
+                    <option value="Ethical">Ethical</option>
+                    <option value="Strategic">Strategic</option>
+                    <option value="Cross-Cutting">Cross-Cutting</option>
+                </select>
+                <select class="filter-select" id="complexityFilter">
+                    <option value="">All Complexity Levels</option>
+                    <option value="Basic">Basic</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                </select>
+                <select class="filter-select" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    <option value="A">A - Cognitive & Conceptual Skills</option>
+                    <option value="B">B - Interpersonal & Communication</option>
+                    <option value="C">C - Operational & Technical</option>
+                    <option value="D">D - Ethical Reasoning & Compliance</option>
+                    <option value="E">E - Strategic Thinking & Decision-Making</option>
+                    <option value="F">F - Cross-Cutting & Miscellaneous</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="activity-sections">
+            <!-- Section A -->
+            <div class="section section-a">
+                <div class="section-header">
+                    <h2 class="section-title">A. Cognitive & Conceptual Skills</h2>
+                    <button class="section-toggle" onclick="toggleForm('formA')">Add Activity</button>
+                </div>
+                
+                <div class="activity-form" id="formA">
+                    <div class="form-group">
+                        <label>Activity Title</label>
+                        <input type="text" class="form-control" id="titleA">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Skill Type</label>
+                            <select class="form-control" id="skillA">
+                                <option value="Cognitive">Cognitive</option>
+                                <option value="Analytical">Analytical</option>
+                                <option value="Application">Application</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Complexity Level</label>
+                            <select class="form-control" id="complexityA">
+                                <option value="Basic">Basic</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Duration (minutes)</label>
+                            <input type="number" class="form-control" id="durationA">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Cohort</label>
+                        <input type="text" class="form-control" id="cohortA" placeholder="e.g., Undergraduate Year 2, MBA students">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject Area</label>
+                        <input type="text" class="form-control" id="subjectA" placeholder="e.g., Mathematics, Business Strategy">
+                    </div>
+                    <div class="form-group">
+                        <label>Activity Description</label>
+                        <textarea class="form-control" id="descriptionA" rows="3" placeholder="Detailed description of the activity..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Learning Objectives</label>
+                        <textarea class="form-control" id="objectivesA" rows="2" placeholder="What will students achieve..."></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addActivity('A')">Add to Section A</button>
+                </div>
+                
+                <div class="activities-list" id="activitiesA"></div>
+                <button class="btn btn-success" onclick="submitSection('A')" style="margin-top: 15px;">Submit Section A</button>
+            </div>
+
+            <!-- Section B -->
+            <div class="section section-b">
+                <div class="section-header">
+                    <h2 class="section-title">B. Interpersonal & Communication Skills</h2>
+                    <button class="section-toggle" onclick="toggleForm('formB')">Add Activity</button>
+                </div>
+                
+                <div class="activity-form" id="formB">
+                    <div class="form-group">
+                        <label>Activity Title</label>
+                        <input type="text" class="form-control" id="titleB">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Skill Type</label>
+                            <select class="form-control" id="skillB">
+                                <option value="Interpersonal">Interpersonal</option>
+                                <option value="Communication">Communication</option>
+                                <option value="Collaboration">Collaboration</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Complexity Level</label>
+                            <select class="form-control" id="complexityB">
+                                <option value="Basic">Basic</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Duration (minutes)</label>
+                            <input type="number" class="form-control" id="durationB">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Cohort</label>
+                        <input type="text" class="form-control" id="cohortB">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject Area</label>
+                        <input type="text" class="form-control" id="subjectB">
+                    </div>
+                    <div class="form-group">
+                        <label>Activity Description</label>
+                        <textarea class="form-control" id="descriptionB" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Learning Objectives</label>
+                        <textarea class="form-control" id="objectivesB" rows="2"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addActivity('B')">Add to Section B</button>
+                </div>
+                
+                <div class="activities-list" id="activitiesB"></div>
+                <button class="btn btn-success" onclick="submitSection('B')" style="margin-top: 15px;">Submit Section B</button>
+            </div>
+
+            <!-- Section C -->
+            <div class="section section-c">
+                <div class="section-header">
+                    <h2 class="section-title">C. Operational & Technical Skills</h2>
+                    <button class="section-toggle" onclick="toggleForm('formC')">Add Activity</button>
+                </div>
+                
+                <div class="activity-form" id="formC">
+                    <div class="form-group">
+                        <label>Activity Title</label>
+                        <input type="text" class="form-control" id="titleC">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Skill Type</label>
+                            <select class="form-control" id="skillC">
+                                <option value="Technical">Technical</option>
+                                <option value="Operational">Operational</option>
+                                <option value="Practical">Practical</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Complexity Level</label>
+                            <select class="form-control" id="complexityC">
+                                <option value="Basic">Basic</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Duration (minutes)</label>
+                            <input type="number" class="form-control" id="durationC">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Cohort</label>
+                        <input type="text" class="form-control" id="cohortC">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject Area</label>
+                        <input type="text" class="form-control" id="subjectC">
+                    </div>
+                    <div class="form-group">
+                        <label>Activity Description</label>
+                        <textarea class="form-control" id="descriptionC" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Learning Objectives</label>
+                        <textarea class="form-control" id="objectivesC" rows="2"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addActivity('C')">Add to Section C</button>
+                </div>
+                
+                <div class="activities-list" id="activitiesC"></div>
+                <button class="btn btn-success" onclick="submitSection('C')" style="margin-top: 15px;">Submit Section C</button>
+            </div>
+
+            <!-- Section D -->
+            <div class="section section-d">
+                <div class="section-header">
+                    <h2 class="section-title">D. Ethical Reasoning & Compliance</h2>
+                    <button class="section-toggle" onclick="toggleForm('formD')">Add Activity</button>
+                </div>
+                
+                <div class="activity-form" id="formD">
+                    <div class="form-group">
+                        <label>Activity Title</label>
+                        <input type="text" class="form-control" id="titleD">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Skill Type</label>
+                            <select class="form-control" id="skillD">
+                                <option value="Ethical">Ethical</option>
+                                <option value="Compliance">Compliance</option>
+                                <option value="Judgment">Judgment</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Complexity Level</label>
+                            <select class="form-control" id="complexityD">
+                                <option value="Basic">Basic</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Duration (minutes)</label>
+                            <input type="number" class="form-control" id="durationD">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Cohort</label>
+                        <input type="text" class="form-control" id="cohortD">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject Area</label>
+                        <input type="text" class="form-control" id="subjectD">
+                    </div>
+                    <div class="form-group">
+                        <label>Activity Description</label>
+                        <textarea class="form-control" id="descriptionD" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Learning Objectives</label>
+                        <textarea class="form-control" id="objectivesD" rows="2"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addActivity('D')">Add to Section D</button>
+                </div>
+                
+                <div class="activities-list" id="activitiesD"></div>
+                <button class="btn btn-success" onclick="submitSection('D')" style="margin-top: 15px;">Submit Section D</button>
+            </div>
+
+            <!-- Section E -->
+            <div class="section section-e">
+                <div class="section-header">
+                    <h2 class="section-title">E. Strategic Thinking & Decision-Making</h2>
+                    <button class="section-toggle" onclick="toggleForm('formE')">Add Activity</button>
+                </div>
+                
+                <div class="activity-form" id="formE">
+                    <div class="form-group">
+                        <label>Activity Title</label>
+                        <input type="text" class="form-control" id="titleE">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Skill Type</label>
+                            <select class="form-control" id="skillE">
+                                <option value="Strategic">Strategic</option>
+                                <option value="Decision-Making">Decision-Making</option>
+                                <option value="Leadership">Leadership</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Complexity Level</label>
+                            <select class="form-control" id="complexityE">
+                                <option value="Basic">Basic</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Duration (minutes)</label>
+                            <input type="number" class="form-control" id="durationE">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Cohort</label>
+                        <input type="text" class="form-control" id="cohortE">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject Area</label>
+                        <input type="text" class="form-control" id="subjectE">
+                    </div>
+                    <div class="form-group">
+                        <label>Activity Description</label>
+                        <textarea class="form-control" id="descriptionE" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Learning Objectives</label>
+                        <textarea class="form-control" id="objectivesE" rows="2"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addActivity('E')">Add to Section E</button>
+                </div>
+                
+                <div class="activities-list" id="activitiesE"></div>
+                <button class="btn btn-success" onclick="submitSection('E')" style="margin-top: 15px;">Submit Section E</button>
+            </div>
+
+            <!-- Section F -->
+            <div class="section section-f">
+                <div class="section-header">
+                    <h2 class="section-title">F. Cross-Cutting & Miscellaneous</h2>
+                    <button class="section-toggle" onclick="toggleForm('formF')">Add Activity</button>
+                </div>
+                
+                <div class="activity-form" id="formF">
+                    <div class="form-group">
+                        <label>Activity Title</label>
+                        <input type="text" class="form-control" id="titleF">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Skill Type</label>
+                            <select class="form-control" id="skillF">
+                                <option value="Cross-Cutting">Cross-Cutting</option>
+                                <option value="Interdisciplinary">Interdisciplinary</option>
+                                <option value="General">General</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Complexity Level</label>
+                            <select class="form-control" id="complexityF">
+                                <option value="Basic">Basic</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Duration (minutes)</label>
+                            <input type="number" class="form-control" id="durationF">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Cohort</label>
+                        <input type="text" class="form-control" id="cohortF">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject Area</label>
+                        <input type="text" class="form-control" id="subjectF">
+                    </div>
+                    <div class="form-group">
+                        <label>Activity Description</label>
+                        <textarea class="form-control" id="descriptionF" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Learning Objectives</label>
+                        <textarea class="form-control" id="objectivesF" rows="2"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addActivity('F')">Add to Section F</button>
+                </div>
+                
+                <div class="activities-list" id="activitiesF"></div>
+                <button class="btn btn-success" onclick="submitSection('F')" style="margin-top: 15px;">Submit Section F</button>
+            </div>
+        </div>
+
+        <button class="btn btn-export" onclick="exportToExcel()">📊 Export Complete Repository to Excel</button>
+    </div>
+
+    <script>
+        let activities = {
+            A: [], B: [], C: [], D: [], E: [], F: []
+        };
+
+        function toggleForm(formId) {
+            const form = document.getElementById(formId);
+            form.classList.toggle('active');
+        }
+
+        function addActivity(section) {
+            const title = document.getElementById(`title${section}`).value;
+            const skill = document.getElementById(`skill${section}`).value;
+            const complexity = document.getElementById(`complexity${section}`).value;
+            const duration = document.getElementById(`duration${section}`).value;
+            const cohort = document.getElementById(`cohort${section}`).value;
+            const subject = document.getElementById(`subject${section}`).value;
+            const description = document.getElementById(`description${section}`).value;
+            const objectives = document.getElementById(`objectives${section}`).value;
+
+            if (!title || !skill || !complexity || !duration) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            const activity = {
+                id: Date.now(),
+                title,
+                skill,
+                complexity,
+                duration: parseInt(duration),
+                cohort,
+                subject,
+                description,
+                objectives,
+                section,
+                dateAdded: new Date().toLocaleDateString()
+            };
+
+            activities[section].push(activity);
+            renderActivities(section);
+            clearForm(section);
+            updateStats();
+        }
+
+        function clearForm(section) {
+            document.getElementById(`title${section}`).value = '';
+            document.getElementById(`skill${section}`).selectedIndex = 0;
+            document.getElementById(`complexity${section}`).selectedIndex = 0;
+            document.getElementById(`duration${section}`).value = '';
+            document.getElementById(`cohort${section}`).value = '';
+            document.getElementById(`subject${section}`).value = '';
+            document.getElementById(`description${section}`).value = '';
+            document.getElementById(`objectives${section}`).value = '';
+        }
+
+        function renderActivities(section) {
+            const container = document.getElementById(`activities${section}`);
+            container.innerHTML = '';
+            
+            const filteredActivities = getFilteredActivities()[section] || [];
+            
+            filteredActivities.forEach(activity => {
+                const activityDiv = document.createElement('div');
+                activityDiv.className = 'activity-item';
+                activityDiv.innerHTML = `
+                    <div class="activity-title">${activity.title}</div>
+                    <div class="activity-details">
+                        <div class="activity-detail"><strong>Skill:</strong> ${activity.skill}</div>
+                        <div class="activity-detail"><strong>Level:</strong> ${activity.complexity}</div>
+                        <div class="activity-detail"><strong>Duration:</strong> ${activity.duration} min</div>
+                        <div class="activity-detail"><strong>Cohort:</strong> ${activity.cohort}</div>
+                        <div class="activity-detail"><strong>Subject:</strong> ${activity.subject}</div>
+                        <div class="activity-detail"><strong>Added:</strong> ${activity.dateAdded}</div>
+                    </div>
+                    <div class="activity-description">${activity.description}</div>
+                    <div style="margin-top: 10px;"><strong>Objectives:</strong> ${activity.objectives}</div>
+                    <button class="delete-btn" onclick="deleteActivity('${section}', ${activity.id})">Delete</button>
+                `;
+                container.appendChild(activityDiv);
+            });
+        }
+
+        function deleteActivity(section, id) {
+            activities[section] = activities[section].filter(activity => activity.id !== id);
+            renderActivities(section);
+            updateStats();
+        }
+
+        function submitSection(section) {
+            if (activities[section].length === 0) {
+                alert(`No activities added to Section ${section}`);
+                return;
+            }
+            alert(`Section ${section} submitted successfully with ${activities[section].length} activities!`);
+        }
+
+        function updateStats() {
+            let total = 0;
+            let basic = 0;
+            let intermediate = 0;
+            let advanced = 0;
+
+            Object.values(activities).forEach(sectionActivities => {
+                sectionActivities.forEach(activity => {
+                    total++;
+                    if (activity.complexity === 'Basic') basic++;
+                    else if (activity.complexity === 'Intermediate') intermediate++;
+                    else if (activity.complexity === 'Advanced') advanced++;
+                });
+            });
+
+            document.getElementById('totalActivities').textContent = total;
+            document.getElementById('basicCount').textContent = basic;
+            document.getElementById('intermediateCount').textContent = intermediate;
+            document.getElementById('advancedCount').textContent = advanced;
+        }
+
+        function getFilteredActivities() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const skillFilter = document.getElementById('skillFilter').value;
+            const complexityFilter = document.getElementById('complexityFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+
+            let filtered = {};
+
+            Object.keys(activities).forEach(section => {
+                if (categoryFilter && categoryFilter !== section) {
+                    filtered[section] = [];
+                    return;
+                }
+
+                filtered[section] = activities[section].filter(activity => {
+                    const matchesSearch = !searchTerm || 
+                        activity.title.toLowerCase().includes(searchTerm) ||
+                        activity.skill.toLowerCase().includes(searchTerm) ||
+                        activity.complexity.toLowerCase().includes(searchTerm) ||
+                        activity.description.toLowerCase().includes(searchTerm) ||
+                        activity.subject.toLowerCase().includes(searchTerm) ||
+                        activity.cohort.toLowerCase().includes(searchTerm);
+
+                    const matchesSkill = !skillFilter || activity.skill === skillFilter;
+                    const matchesComplexity = !complexityFilter || activity.complexity === complexityFilter;
+
+                    return matchesSearch && matchesSkill && matchesComplexity;
+                });
+            });
+
+            return filtered;
+        }
+
+        function performSearch() {
+            applyFilters();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchBox').value = '';
+            document.getElementById('skillFilter').selectedIndex = 0;
+            document.getElementById('complexityFilter').selectedIndex = 0;
+            document.getElementById('categoryFilter').selectedIndex = 0;
+            applyFilters();
+        }
+
+        function downloadTemplate() {
+            const templateData = [
+                {
+                    'Section': 'A',
+                    'Title': 'Sample Activity Title',
+                    'Skill Type': 'Cognitive',
+                    'Complexity Level': 'Intermediate',
+                    'Duration (minutes)': 45,
+                    'Target Cohort': 'MBA Students',
+                    'Subject Area': 'Business Strategy',
+                    'Description': 'Detailed description of the activity and what students will do',
+                    'Learning Objectives': 'What students will learn and achieve from this activity'
+                },
+                {
+                    'Section': 'B',
+                    'Title': 'Another Sample Activity',
+                    'Skill Type': 'Communication',
+                    'Complexity Level': 'Basic',
+                    'Duration (minutes)': 30,
+                    'Target Cohort': 'Undergraduate Year 2',
+                    'Subject Area': 'Marketing',
+                    'Description': 'Another example activity description',
+                    'Learning Objectives': 'Learning outcomes for this activity'
+                }
+            ];
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(templateData);
+            
+            const instructions = [
+                { 'Field': 'Section', 'Required': 'Yes', 'Valid Values': 'A, B, C, D, E, F', 'Description': 'Section category (A-F)' },
+                { 'Field': 'Title', 'Required': 'Yes', 'Valid Values': 'Any text', 'Description': 'Activity title' },
+                { 'Field': 'Skill Type', 'Required': 'Yes', 'Valid Values': 'Cognitive, Interpersonal, Technical, Ethical, Strategic, Cross-Cutting', 'Description': 'Type of skill being developed' },
+                { 'Field': 'Complexity Level', 'Required': 'Yes', 'Valid Values': 'Basic, Intermediate, Advanced', 'Description': 'Difficulty level' },
+                { 'Field': 'Duration (minutes)', 'Required': 'Yes', 'Valid Values': 'Number', 'Description': 'Activity duration in minutes' },
+                { 'Field': 'Target Cohort', 'Required': 'No', 'Valid Values': 'Any text', 'Description': 'Target student group' },
+                { 'Field': 'Subject Area', 'Required': 'No', 'Valid Values': 'Any text', 'Description': 'Subject or discipline' },
+                { 'Field': 'Description', 'Required': 'No', 'Valid Values': 'Any text', 'Description': 'Detailed activity description' },
+                { 'Field': 'Learning Objectives', 'Required': 'No', 'Valid Values': 'Any text', 'Description': 'What students will learn' }
+            ];
+            
+            const instructionsWs = XLSX.utils.json_to_sheet(instructions);
+            XLSX.utils.book_append_sheet(wb, instructionsWs, 'Instructions');
+            XLSX.utils.book_append_sheet(wb, ws, 'Template');
+
+            XLSX.writeFile(wb, 'Activity_Upload_Template.xlsx');
+            showUploadStatus('Template downloaded successfully! Fill it out and upload back.', 'success');
+        }
+
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    let sheetName = workbook.SheetNames.find(name => 
+                        name.toLowerCase().includes('template') || 
+                        name.toLowerCase().includes('data') ||
+                        name === 'Sheet1'
+                    ) || workbook.SheetNames[0];
+                    
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if (jsonData.length === 0) {
+                        showUploadStatus('No data found in the Excel file.', 'error');
+                        return;
+                    }
+                    
+                    processExcelData(jsonData);
+                    
+                } catch (error) {
+                    console.error('Error processing Excel file:', error);
+                    showUploadStatus('Error reading Excel file. Please check the format.', 'error');
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+            event.target.value = '';
+        }
+
+        function processExcelData(data) {
+            let successCount = 0;
+            let errorCount = 0;
+            const errors = [];
+            
+            data.forEach((row, index) => {
+                try {
+                    const section = (row.Section || '').toString().trim().toUpperCase();
+                    const title = (row.Title || '').toString().trim();
+                    const skillType = (row['Skill Type'] || '').toString().trim();
+                    const complexity = (row['Complexity Level'] || '').toString().trim();
+                    const duration = parseInt(row['Duration (minutes)']) || 0;
+                    const cohort = (row['Target Cohort'] || '').toString().trim();
+                    const subject = (row['Subject Area'] || '').toString().trim();
+                    const description = (row.Description || '').toString().trim();
+                    const objectives = (row['Learning Objectives'] || '').toString().trim();
+                    
+                    if (!section || !['A', 'B', 'C', 'D', 'E', 'F'].includes(section)) {
+                        errors.push(`Row ${index + 2}: Invalid or missing Section (must be A, B, C, D, E, or F)`);
+                        errorCount++;
+                        return;
+                    }
+                    
+                    if (!title) {
+                        errors.push(`Row ${index + 2}: Missing Title`);
+                        errorCount++;
+                        return;
+                    }
+                    
+                    if (!skillType) {
+                        errors.push(`Row ${index + 2}: Missing Skill Type`);
+                        errorCount++;
+                        return;
+                    }
+                    
+                    if (!complexity || !['Basic', 'Intermediate', 'Advanced'].includes(complexity)) {
+                        errors.push(`Row ${index + 2}: Invalid Complexity Level (must be Basic, Intermediate, or Advanced)`);
+                        errorCount++;
+                        return;
+                    }
+                    
+                    if (!duration || duration <= 0) {
+                        errors.push(`Row ${index + 2}: Invalid Duration (must be a positive number)`);
+                        errorCount++;
+                        return;
+                    }
+                    
+                    const activity = {
+                        id: Date.now() + Math.random(),
+                        title,
+                        skill: skillType,
+                        complexity,
+                        duration,
+                        cohort,
+                        subject,
+                        description,
+                        objectives,
+                        section,
+                        dateAdded: new Date().toLocaleDateString()
+                    };
+                    
+                    activities[section].push(activity);
+                    successCount++;
+                    
+                } catch (error) {
+                    errors.push(`Row ${index + 2}: ${error.message}`);
+                    errorCount++;
+                }
+            });
+            
+            Object.keys(activities).forEach(section => {
+                renderActivities(section);
+            });
+            updateStats();
+            
+            let message = `Upload completed! ${successCount} activities imported successfully.`;
+            if (errorCount > 0) {
+                message += ` ${errorCount} rows had errors.`;
+                if (errors.length > 0) {
+                    message += '\n\nErrors:\n' + errors.slice(0, 5).join('\n');
+                    if (errors.length > 5) {
+                        message += `\n... and ${errors.length - 5} more errors.`;
+                    }
+                }
+            }
+            
+            showUploadStatus(message, errorCount > 0 ? 'error' : 'success');
+        }
+
+        function showUploadStatus(message, type) {
+            const existingStatus = document.querySelector('.upload-status');
+            if (existingStatus) {
+                existingStatus.remove();
+            }
+            
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `upload-status upload-${type}`;
+            statusDiv.textContent = message;
+            
+            const uploadSection = document.querySelector('.upload-section');
+            uploadSection.appendChild(statusDiv);
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    if (statusDiv.parentNode) {
+                        statusDiv.remove();
+                    }
+                }, 5000);
+            }
+        }
+
+        function applyFilters() {
+            Object.keys(activities).forEach(section => {
+                renderActivities(section);
+            });
+        }
+
+        function exportToExcel() {
+            const allActivities = [];
+            
+            Object.keys(activities).forEach(section => {
+                activities[section].forEach(activity => {
+                    allActivities.push({
+                        'Section': section,
+                        'Category': getSectionName(section),
+                        'Title': activity.title,
+                        'Skill Type': activity.skill,
+                        'Complexity Level': activity.complexity,
+                        'Duration (minutes)': activity.duration,
+                        'Target Cohort': activity.cohort,
+                        'Subject Area': activity.subject,
+                        'Description': activity.description,
+                        'Learning Objectives': activity.objectives,
+                        'Date Added': activity.dateAdded
+                    });
+                });
+            });
+
+            if (allActivities.length === 0) {
+                alert('No activities to export');
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(allActivities);
+            XLSX.utils.book_append_sheet(wb, ws, 'All Activities');
+
+            Object.keys(activities).forEach(section => {
+                if (activities[section].length > 0) {
+                    const sectionData = activities[section].map(activity => ({
+                        'Title': activity.title,
+                        'Skill Type': activity.skill,
+                        'Complexity Level': activity.complexity,
+                        'Duration (minutes)': activity.duration,
+                        'Target Cohort': activity.cohort,
+                        'Subject Area': activity.subject,
+                        'Description': activity.description,
+                        'Learning Objectives': activity.objectives,
+                        'Date Added': activity.dateAdded
+                    }));
+                    const sectionWs = XLSX.utils.json_to_sheet(sectionData);
+                    XLSX.utils.book_append_sheet(wb, sectionWs, `Section ${section}`);
+                }
+            });
+
+            const summary = [
+                { 'Section': 'A', 'Category': 'Cognitive & Conceptual Skills', 'Count': activities.A.length },
+                { 'Section': 'B', 'Category': 'Interpersonal & Communication', 'Count': activities.B.length },
+                { 'Section': 'C', 'Category': 'Operational & Technical', 'Count': activities.C.length },
+                { 'Section': 'D', 'Category': 'Ethical Reasoning & Compliance', 'Count': activities.D.length },
+                { 'Section': 'E', 'Category': 'Strategic Thinking & Decision-Making', 'Count': activities.E.length },
+                { 'Section': 'F', 'Category': 'Cross-Cutting & Miscellaneous', 'Count': activities.F.length }
+            ];
+            const summaryWs = XLSX.utils.json_to_sheet(summary);
+            XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+
+            const fileName = `Faculty_Activity_Repository_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+        }
+
+        function getSectionName(section) {
+            const names = {
+                'A': 'Cognitive & Conceptual Skills',
+                'B': 'Interpersonal & Communication Skills',
+                'C': 'Operational & Technical Skills',
+                'D': 'Ethical Reasoning & Compliance Judgment',
+                'E': 'Strategic Thinking & Decision-Making',
+                'F': 'Cross-Cutting & Miscellaneous Activities'
+            };
+            return names[section] || '';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('searchBox').addEventListener('input', applyFilters);
+            document.getElementById('searchBox').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+            document.getElementById('skillFilter').addEventListener('change', applyFilters);
+            document.getElementById('complexityFilter').addEventListener('change', applyFilters);
+            document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+            updateStats();
+        });
+
+        function loadSampleData() {
+            activities.A.push({
+                id: 1,
+                title: "Case Study Analysis",
+                skill: "Analytical",
+                complexity: "Intermediate",
+                duration: 45,
+                cohort: "MBA Students",
+                subject: "Business Strategy",
+                description: "Students analyze real-world business cases to identify problems and propose solutions",
+                objectives: "Develop analytical thinking and problem-solving skills",
+                section: "A",
+                dateAdded: new Date().toLocaleDateString()
+            });
+
+            activities.B.push({
+                id: 2,
+                title: "Group Presentation",
+                skill: "Communication",
+                complexity: "Basic",
+                duration: 30,
+                cohort: "Undergraduate Year 2",
+                subject: "Marketing",
+                description: "Students present their research findings to the class in groups",
+                objectives: "Improve public speaking and teamwork skills",
+                section: "B",
+                dateAdded: new Date().toLocaleDateString()
+            });
+
+            Object.keys(activities).forEach(section => {
+                renderActivities(section);
+            });
+            updateStats();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(loadSampleData, 500);
+        });
+    </script>
+</body>
+</html>
