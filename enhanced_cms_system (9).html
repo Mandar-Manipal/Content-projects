@@ -787,15 +787,57 @@
             const hopCount = requests.filter(r => r.status === 'HOP').length;
             const fprCount = requests.filter(r => r.status === 'FPR').length;
 
-            // Highlight active stages
+            // Update step indicators with counts
+            const hodStep = document.getElementById('stepHOD');
+            const hopStep = document.getElementById('stepHOP');
+            const fprStep = document.getElementById('stepFPR');
+
+            // Update HOD step
             if (hodCount > 0) {
-                document.getElementById('stepHOD').classList.add('step-active');
+                hodStep.classList.add('step-active');
+                hodStep.innerHTML = `
+                    <div style="font-size: 1.2rem; margin-bottom: 5px;">📝 (${hodCount})</div>
+                    <div>HOD (Maker)</div>
+                    <div style="font-size: 0.8rem; opacity: 0.9;">Create Request</div>
+                `;
+            } else {
+                hodStep.innerHTML = `
+                    <div style="font-size: 1.2rem; margin-bottom: 5px;">📝</div>
+                    <div>HOD (Maker)</div>
+                    <div style="font-size: 0.8rem; opacity: 0.9;">Create Request</div>
+                `;
             }
+
+            // Update HOP step
             if (hopCount > 0) {
-                document.getElementById('stepHOP').classList.add('step-active');
+                hopStep.classList.add('step-active');
+                hopStep.innerHTML = `
+                    <div style="font-size: 1.2rem; margin-bottom: 5px;">✅ (${hopCount})</div>
+                    <div>HOP (Checker)</div>
+                    <div style="font-size: 0.8rem; opacity: 0.9;">Review & Approve</div>
+                `;
+            } else {
+                hopStep.innerHTML = `
+                    <div style="font-size: 1.2rem; margin-bottom: 5px;">✅</div>
+                    <div>HOP (Checker)</div>
+                    <div style="font-size: 0.8rem; opacity: 0.9;">Review & Approve</div>
+                `;
             }
+
+            // Update FPR step
             if (fprCount > 0) {
-                document.getElementById('stepFPR').classList.add('step-active');
+                fprStep.classList.add('step-active');
+                fprStep.innerHTML = `
+                    <div style="font-size: 1.2rem; margin-bottom: 5px;">📊 (${fprCount})</div>
+                    <div>Content Team FPR</div>
+                    <div style="font-size: 0.8rem; opacity: 0.9;">Final Processing</div>
+                `;
+            } else {
+                fprStep.innerHTML = `
+                    <div style="font-size: 1.2rem; margin-bottom: 5px;">📊</div>
+                    <div>Content Team FPR</div>
+                    <div style="font-size: 0.8rem; opacity: 0.9;">Final Processing</div>
+                `;
             }
         }
 
@@ -938,8 +980,16 @@
                 otherDepartment: document.getElementById('otherDepartment').value,
                 status: 'HOD',
                 stage: 'HOD',
+                workflowStep: 1, // 1=HOD, 2=HOP, 3=FPR, 4=COMPLETED
                 createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp()
+                updatedAt: serverTimestamp(),
+                submittedBy: 'HOD User', // In real app, this would be current user
+                statusHistory: [{
+                    status: 'HOD',
+                    timestamp: new Date(),
+                    action: 'Request Created',
+                    user: 'HOD User'
+                }]
             };
 
             try {
@@ -960,7 +1010,7 @@
                 // Update counter
                 await updateCounter(formData.department);
                 
-                showNotification('Request submitted successfully!', 'success');
+                showNotification('Request submitted to HOD stage successfully!', 'success');
                 clearForm();
                 
                 // Force refresh data
@@ -968,7 +1018,7 @@
                 
             } catch (error) {
                 console.error("Error submitting request:", error);
-                showNotification('Error submitting request', 'error');
+                showNotification('Error submitting request: ' + error.message, 'error');
             }
         }
 
@@ -1115,45 +1165,83 @@
 
         window.moveToNextStage = async function(requestId) {
             const request = requests.find(r => r.id === requestId);
-            if (!request) return;
+            if (!request) {
+                showNotification('Request not found', 'error');
+                return;
+            }
 
             let nextStatus;
+            let nextStep;
             let actionMessage;
+            let actionUser;
 
             switch (request.status) {
                 case 'HOD':
                     nextStatus = 'HOP';
-                    actionMessage = 'Move to HOP (Checker) stage?';
+                    nextStep = 2;
+                    actionMessage = 'Submit to HOP (Checker) for review?';
+                    actionUser = 'HOD User';
                     break;
                 case 'HOP':
                     nextStatus = 'FPR';
-                    actionMessage = 'Approve and move to FPR (Final Processing) stage?';
+                    nextStep = 3;
+                    actionMessage = 'Approve and forward to Content Team FPR?';
+                    actionUser = 'HOP User';
                     break;
                 case 'FPR':
                     nextStatus = 'COMPLETED';
-                    actionMessage = 'Mark as completed and generate Excel export?';
+                    nextStep = 4;
+                    actionMessage = 'Mark as completed and generate final export?';
+                    actionUser = 'FPR User';
                     break;
                 case 'COMPLETED':
                     showNotification('Request is already completed', 'warning');
                     return;
                 default:
                     nextStatus = 'HOP';
+                    nextStep = 2;
                     actionMessage = 'Move to next stage?';
+                    actionUser = 'System User';
             }
 
-            if (confirm(actionMessage)) {
+            if (confirm(`${actionMessage}\n\nRequest: ${request.requestId}\nTitle: ${request.title}`)) {
                 try {
-                    await updateRequestStatus(requestId, nextStatus);
+                    // Create status history entry
+                    const statusHistory = request.statusHistory || [];
+                    statusHistory.push({
+                        status: nextStatus,
+                        timestamp: new Date(),
+                        action: `Moved to ${nextStatus} stage`,
+                        user: actionUser,
+                        previousStatus: request.status
+                    });
+
+                    // Update request with new status
+                    const requestRef = doc(db, 'cms_requests', requestId);
+                    await updateDoc(requestRef, {
+                        status: nextStatus,
+                        stage: nextStatus,
+                        workflowStep: nextStep,
+                        updatedAt: serverTimestamp(),
+                        statusHistory: statusHistory,
+                        [`${nextStatus.toLowerCase()}ProcessedAt`]: serverTimestamp()
+                    });
                     
                     // If moving to completed, trigger export
                     if (nextStatus === 'COMPLETED') {
-                        generateExcelExport(request);
+                        setTimeout(() => {
+                            generateExcelExport(request);
+                        }, 1000);
                     }
                     
-                    showNotification(`Request moved to ${nextStatus} stage successfully!`, 'success');
+                    showNotification(`✅ Request ${request.requestId} moved to ${nextStatus} stage!`, 'success');
+                    
+                    // Force refresh to show updated data
+                    await loadRequests();
+                    
                 } catch (error) {
                     console.error("Error moving to next stage:", error);
-                    showNotification('Error updating request status', 'error');
+                    showNotification('Error updating request: ' + error.message, 'error');
                 }
             }
         };
