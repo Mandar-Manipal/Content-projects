@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enhanced CMS System - Firebase Powered</title>
+    <title>Enhanced CMS System - Debug Version</title>
     <style>
         * {
             margin: 0;
@@ -52,11 +52,6 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
         .status-bar {
             background: white;
             padding: 15px 30px;
@@ -79,17 +74,10 @@
             height: 12px;
             border-radius: 50%;
             background: #dc3545;
-            animation: pulse 2s infinite;
         }
 
         .status-indicator.connected {
             background: #28a745;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
         }
 
         .workflow-indicator {
@@ -120,26 +108,9 @@
             transition: transform 0.3s ease;
         }
 
-        .workflow-step:hover {
-            transform: translateY(-3px);
-        }
-
-        .step-hod {
-            background: linear-gradient(135deg, #28a745, #20c997);
-        }
-
-        .step-hop {
-            background: linear-gradient(135deg, #ffc107, #fd7e14);
-        }
-
-        .step-fpr {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-        }
-
-        .step-active {
-            box-shadow: 0 0 20px rgba(255,255,255,0.8);
-            transform: scale(1.05);
-        }
+        .step-hod { background: linear-gradient(135deg, #28a745, #20c997); }
+        .step-hop { background: linear-gradient(135deg, #ffc107, #fd7e14); }
+        .step-fpr { background: linear-gradient(135deg, #dc3545, #c82333); }
 
         .workflow-arrow {
             font-size: 1.5rem;
@@ -170,35 +141,6 @@
             padding: 20px;
             border-radius: 15px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .search-section {
-            background: rgba(255,255,255,0.95);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-
-        .search-box {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e6ed;
-            border-radius: 10px;
-            font-size: 16px;
-            margin-bottom: 15px;
-        }
-
-        .search-filters {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .filter-select {
-            padding: 10px;
-            border: 2px solid #e0e6ed;
-            border-radius: 5px;
         }
 
         .form-group {
@@ -249,123 +191,13 @@
             color: white;
         }
 
-        .btn-success {
-            background: linear-gradient(135deg, #28a745, #20c997);
-            color: white;
-        }
-
         .btn-warning {
             background: linear-gradient(135deg, #ffc107, #fd7e14);
             color: white;
         }
 
-        .btn-danger {
-            background: linear-gradient(135deg, #dc3545, #c82333);
-            color: white;
-        }
-
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .file-upload {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .file-upload input[type=file] {
-            position: absolute;
-            left: -9999px;
-        }
-
-        .file-upload-label {
-            display: block;
-            padding: 12px;
-            border: 2px dashed #667eea;
-            border-radius: 8px;
-            text-align: center;
-            background: #f8f9fa;
-            transition: all 0.3s ease;
-        }
-
-        .file-upload-label:hover {
-            background: #e9ecef;
-            border-color: #495057;
-        }
-
-        .file-list {
-            margin-top: 10px;
-        }
-
-        .file-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px;
-            background: #e9ecef;
-            border-radius: 5px;
-            margin-bottom: 5px;
-        }
-
-        .requests-list {
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .request-item {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 15px;
-            border-left: 5px solid #667eea;
-            transition: all 0.3s ease;
-        }
-
-        .request-item:hover {
-            background: #e9ecef;
-            transform: translateX(5px);
-        }
-
-        .request-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .request-id {
-            font-weight: 700;
-            color: #2c3e50;
-        }
-
-        .request-status {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 500;
-        }
-
-        .status-hod {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-hop {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-fpr {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .status-completed {
-            background: #cce5ff;
-            color: #004085;
         }
 
         .data-management {
@@ -373,10 +205,6 @@
             color: white;
             padding: 20px;
             border-radius: 15px;
-        }
-
-        .data-management h3 {
-            margin-bottom: 15px;
         }
 
         .stats-grid {
@@ -399,53 +227,50 @@
             margin-bottom: 5px;
         }
 
-        .stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
+        .requests-list {
+            max-height: 400px;
+            overflow-y: auto;
         }
 
-        .monthly-controls {
-            display: flex;
-            gap: 10px;
+        .request-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
             margin-bottom: 15px;
-            flex-wrap: wrap;
+            border-left: 5px solid #667eea;
         }
 
-        .date-input {
-            padding: 8px;
-            border: none;
-            border-radius: 5px;
-            background: rgba(255,255,255,0.9);
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 5px;
-            color: white;
+        .request-id {
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .request-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
             font-weight: 500;
-            z-index: 1000;
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
+            background: #d4edda;
+            color: #155724;
         }
 
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.success {
-            background: #28a745;
-        }
-
-        .notification.error {
-            background: #dc3545;
-        }
-
-        .notification.warning {
-            background: #ffc107;
-            color: #212529;
+        .debug-panel {
+            background: #343a40;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
         }
 
         @media (max-width: 768px) {
@@ -456,14 +281,6 @@
             .form-row {
                 grid-template-columns: 1fr;
             }
-            
-            .workflow-steps {
-                flex-direction: column;
-            }
-            
-            .monthly-controls {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
@@ -473,48 +290,23 @@
         
         <div class="header">
             <h1>🏗️ Enhanced CMS System</h1>
-            <p>Firebase-Powered Content Management with Workflow</p>
+            <p>Debug Version - Firebase Integration</p>
         </div>
 
         <div class="status-bar">
             <div class="connection-status">
                 <div class="status-indicator" id="connectionStatus"></div>
-                <span id="connectionText">Connecting to Firebase...</span>
+                <span id="connectionText">Initializing...</span>
             </div>
             <div>
-                <span id="lastSync">Never synced</span>
+                <span id="lastSync">Starting up...</span>
             </div>
         </div>
 
-        <!-- Search Section -->
-        <div class="search-section">
-            <h3>🔍 Search & Filter Requests</h3>
-            <input type="text" class="search-box" id="searchBox" placeholder="Search by Request ID, Title, Department, or Status...">
-            <div class="search-filters">
-                <select class="filter-select" id="departmentFilter">
-                    <option value="">All Departments</option>
-                    <option value="AXIS">AXIS Bank</option>
-                    <option value="HDFC">HDFC Bank</option>
-                    <option value="ICICI">ICICI Bank</option>
-                    <option value="SBI">State Bank of India</option>
-                    <option value="PNB">Punjab National Bank</option>
-                    <option value="OTHER">Other</option>
-                </select>
-                <select class="filter-select" id="statusFilter">
-                    <option value="">All Statuses</option>
-                    <option value="HOD">HOD Stage</option>
-                    <option value="HOP">HOP Stage</option>
-                    <option value="FPR">FPR Stage</option>
-                    <option value="COMPLETED">Completed</option>
-                </select>
-                <select class="filter-select" id="priorityFilter">
-                    <option value="">All Priorities</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                </select>
-                <input type="date" class="filter-select" id="dateFilter">
-            </div>
+        <!-- Debug Panel -->
+        <div class="debug-panel" id="debugLog">
+            <strong>Debug Log:</strong><br>
+            Page loaded...<br>
         </div>
 
         <!-- Workflow Indicator -->
@@ -548,7 +340,7 @@
                 <form id="cmsForm">
                     <div class="form-group">
                         <label>Request ID</label>
-                        <input type="text" class="form-control" id="requestId" readonly>
+                        <input type="text" class="form-control" id="requestId" value="HDFC-2025-0001" readonly>
                     </div>
 
                     <div class="form-row">
@@ -561,10 +353,6 @@
                                 <option value="ICICI">ICICI Bank</option>
                                 <option value="SBI">State Bank of India</option>
                                 <option value="PNB">Punjab National Bank</option>
-                                <option value="KOTAK">Kotak Mahindra Bank</option>
-                                <option value="YES">YES Bank</option>
-                                <option value="INDUSIND">IndusInd Bank</option>
-                                <option value="OTHER">Other</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -575,11 +363,6 @@
                                 <option value="Short Term">Short Term</option>
                             </select>
                         </div>
-                    </div>
-
-                    <div class="form-group" id="otherDepartmentGroup" style="display: none;">
-                        <label>Other Department Name *</label>
-                        <input type="text" class="form-control" id="otherDepartment">
                     </div>
 
                     <div class="form-row">
@@ -611,37 +394,23 @@
 
                     <div class="form-group">
                         <label>Brief Title *</label>
-                        <input type="text" class="form-control" id="title" placeholder="Enter brief title for the content" required>
+                        <input type="text" class="form-control" id="title" placeholder="Enter brief title" required>
                     </div>
 
                     <div class="form-group">
                         <label>Content Description *</label>
-                        <textarea class="form-control" id="description" rows="4" placeholder="Provide detailed description of the content requirements" required></textarea>
+                        <textarea class="form-control" id="description" rows="4" placeholder="Provide detailed description" required></textarea>
                     </div>
 
                     <div class="form-group">
                         <label>Additional Notes</label>
-                        <textarea class="form-control" id="notes" rows="3" placeholder="Any additional notes or special requirements"></textarea>
-                    </div>
-
-                    <!-- File Attachment Section -->
-                    <div class="form-group">
-                        <label>📎 File Attachments</label>
-                        <div class="file-upload">
-                            <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.xlsx,.png,.jpg,.jpeg">
-                            <label for="fileInput" class="file-upload-label">
-                                <div>📁 Click to select files or drag and drop</div>
-                                <div style="font-size: 0.9rem; color: #6c757d; margin-top: 5px;">
-                                    Supported: PDF, DOC, DOCX, XLSX, PNG, JPG (Max 10MB each)
-                                </div>
-                            </label>
-                        </div>
-                        <div class="file-list" id="fileList"></div>
+                        <textarea class="form-control" id="notes" rows="3" placeholder="Any additional notes"></textarea>
                     </div>
 
                     <div style="margin-top: 30px;">
                         <button type="submit" class="btn btn-primary">💾 Submit Request</button>
                         <button type="button" class="btn btn-warning" onclick="clearForm()">🔄 Clear Form</button>
+                        <button type="button" class="btn btn-warning" onclick="testFirebase()">🔧 Test Firebase</button>
                     </div>
                 </form>
             </div>
@@ -670,17 +439,6 @@
                             <div class="stat-label">This Month</div>
                         </div>
                     </div>
-
-                    <div class="monthly-controls">
-                        <input type="month" class="date-input" id="monthSelector">
-                        <button class="btn btn-success btn-sm" onclick="downloadMonthlyData()">📅 Download Monthly</button>
-                    </div>
-
-                    <div style="margin-top: 15px;">
-                        <button class="btn btn-warning btn-sm" onclick="exportAllData()">📊 Export All Data</button>
-                        <button class="btn btn-primary btn-sm" onclick="sendEmailReport()">📧 Email Report</button>
-                        <button class="btn btn-danger btn-sm" onclick="clearPastData()">🗑️ Clear Past Data</button>
-                    </div>
                 </div>
 
                 <!-- Recent Requests -->
@@ -688,7 +446,7 @@
                     <h3>📋 Recent Requests</h3>
                     <div class="requests-list" id="requestsList">
                         <div style="text-align: center; color: #6c757d; padding: 20px;">
-                            No requests found
+                            Loading requests...
                         </div>
                     </div>
                 </div>
@@ -696,12 +454,22 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
+        // Debug logging function
+        function debugLog(message) {
+            console.log(message);
+            const debugPanel = document.getElementById('debugLog');
+            debugPanel.innerHTML += new Date().toLocaleTimeString() + ': ' + message + '<br>';
+            debugPanel.scrollTop = debugPanel.scrollHeight;
+        }
+
+        debugLog('Script starting...');
+
         // Firebase imports
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        debugLog('Firebase modules imported');
 
         // Firebase configuration
         const firebaseConfig = {
@@ -714,389 +482,69 @@
             measurementId: "G-9RZRHCLV69"
         };
 
-        // Initialize Firebase
-        let app, db, storage;
+        // Global variables
+        let app, db;
         let requests = [];
-        let requestCounters = {};
-        let selectedFiles = [];
 
+        // Initialize Firebase
         try {
+            debugLog('Initializing Firebase...');
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            storage = getStorage(app);
-            updateConnectionStatus(true);
-            initializeCMSApp();
-        } catch (error) {
-            console.error("Firebase initialization error:", error);
-            updateConnectionStatus(false);
-            showNotification('Firebase connection failed', 'error');
-        }
-
-        function updateConnectionStatus(connected) {
-            const indicator = document.getElementById('connectionStatus');
-            const text = document.getElementById('connectionText');
+            debugLog('Firebase initialized successfully');
             
-            if (connected) {
-                indicator.classList.add('connected');
-                text.textContent = 'Connected to Firebase';
-            } else {
-                indicator.classList.remove('connected');
-                text.textContent = 'Offline Mode';
-            }
+            document.getElementById('connectionStatus').classList.add('connected');
+            document.getElementById('connectionText').textContent = 'Connected to Firebase';
+            
+            initializeApp();
+        } catch (error) {
+            debugLog('Firebase initialization error: ' + error.message);
+            document.getElementById('connectionText').textContent = 'Firebase Error';
         }
 
-        function updateLastSync() {
-            document.getElementById('lastSync').textContent = `Last sync: ${new Date().toLocaleTimeString()}`;
-        }
-
-        async function initializeCMSApp() {
-            console.log('Initializing CMS application...');
+        async function initializeApp() {
+            debugLog('Starting app initialization...');
             try {
-                await loadRequests();
-                await loadCounters();
-                setupRealtimeListener();
-                updateStats();
-                generateRequestId();
-                setupEventListeners();
-                console.log('CMS initialization complete');
-                
-                // Test Firebase connection
                 await testFirebaseConnection();
+                await loadRequests();
+                setupEventListeners();
+                debugLog('App initialization complete');
             } catch (error) {
-                console.error('Error during CMS initialization:', error);
-                showNotification('Initialization error: ' + error.message, 'error');
+                debugLog('App initialization error: ' + error.message);
             }
         }
 
         async function testFirebaseConnection() {
             try {
-                console.log('Testing Firebase connection...');
-                const testRef = collection(db, 'cms_requests');
-                const snapshot = await getDocs(testRef);
-                console.log('Firebase test successful. Document count:', snapshot.size);
-                showNotification('✅ Firebase connected successfully', 'success');
+                debugLog('Testing Firebase connection...');
+                const testCollection = collection(db, 'cms_requests');
+                const snapshot = await getDocs(testCollection);
+                debugLog('Firebase test successful. Documents found: ' + snapshot.size);
+                return true;
             } catch (error) {
-                console.error('Firebase connection test failed:', error);
-                showNotification('❌ Firebase connection failed: ' + error.message, 'error');
-            }
-        }
-
-        function setupRealtimeListener() {
-            console.log('Setting up real-time listener...');
-            const requestsRef = collection(db, 'cms_requests');
-            
-            onSnapshot(requestsRef, (snapshot) => {
-                console.log('Real-time update received. Snapshot size:', snapshot.size);
-                requests = [];
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    console.log('Real-time data:', doc.id, data);
-                    requests.push({ id: doc.id, ...data });
-                });
-                console.log('Real-time total requests:', requests.length);
-                displayRequests();
-                updateStats();
-                updateWorkflowIndicator();
-                updateLastSync();
-            }, (error) => {
-                console.error("Error in real-time listener:", error);
-                showNotification('Real-time updates failed: ' + error.message, 'error');
-                
-                // Fallback to manual loading
-                console.log('Falling back to manual loading...');
-                loadRequests();
-            });
-        }
-
-        function updateWorkflowIndicator() {
-            // Reset all steps
-            document.getElementById('stepHOD').classList.remove('step-active');
-            document.getElementById('stepHOP').classList.remove('step-active');
-            document.getElementById('stepFPR').classList.remove('step-active');
-
-            // Count requests in each stage
-            const hodCount = requests.filter(r => r.status === 'HOD').length;
-            const hopCount = requests.filter(r => r.status === 'HOP').length;
-            const fprCount = requests.filter(r => r.status === 'FPR').length;
-
-            // Update step indicators with counts
-            const hodStep = document.getElementById('stepHOD');
-            const hopStep = document.getElementById('stepHOP');
-            const fprStep = document.getElementById('stepFPR');
-
-            // Update HOD step
-            if (hodCount > 0) {
-                hodStep.classList.add('step-active');
-                hodStep.innerHTML = `
-                    <div style="font-size: 1.2rem; margin-bottom: 5px;">📝 (${hodCount})</div>
-                    <div>HOD (Maker)</div>
-                    <div style="font-size: 0.8rem; opacity: 0.9;">Create Request</div>
-                `;
-            } else {
-                hodStep.innerHTML = `
-                    <div style="font-size: 1.2rem; margin-bottom: 5px;">📝</div>
-                    <div>HOD (Maker)</div>
-                    <div style="font-size: 0.8rem; opacity: 0.9;">Create Request</div>
-                `;
-            }
-
-            // Update HOP step
-            if (hopCount > 0) {
-                hopStep.classList.add('step-active');
-                hopStep.innerHTML = `
-                    <div style="font-size: 1.2rem; margin-bottom: 5px;">✅ (${hopCount})</div>
-                    <div>HOP (Checker)</div>
-                    <div style="font-size: 0.8rem; opacity: 0.9;">Review & Approve</div>
-                `;
-            } else {
-                hopStep.innerHTML = `
-                    <div style="font-size: 1.2rem; margin-bottom: 5px;">✅</div>
-                    <div>HOP (Checker)</div>
-                    <div style="font-size: 0.8rem; opacity: 0.9;">Review & Approve</div>
-                `;
-            }
-
-            // Update FPR step
-            if (fprCount > 0) {
-                fprStep.classList.add('step-active');
-                fprStep.innerHTML = `
-                    <div style="font-size: 1.2rem; margin-bottom: 5px;">📊 (${fprCount})</div>
-                    <div>Content Team FPR</div>
-                    <div style="font-size: 0.8rem; opacity: 0.9;">Final Processing</div>
-                `;
-            } else {
-                fprStep.innerHTML = `
-                    <div style="font-size: 1.2rem; margin-bottom: 5px;">📊</div>
-                    <div>Content Team FPR</div>
-                    <div style="font-size: 0.8rem; opacity: 0.9;">Final Processing</div>
-                `;
+                debugLog('Firebase test failed: ' + error.message);
+                return false;
             }
         }
 
         async function loadRequests() {
             try {
-                console.log('Loading requests from Firebase...');
-                const q = query(collection(db, 'cms_requests'), orderBy('createdAt', 'desc'));
-                const querySnapshot = await getDocs(q);
+                debugLog('Loading requests...');
+                const querySnapshot = await getDocs(collection(db, 'cms_requests'));
                 requests = [];
                 querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    console.log('Loaded request:', doc.id, data);
-                    requests.push({ id: doc.id, ...data });
+                    requests.push({ id: doc.id, ...doc.data() });
                 });
-                console.log('Total requests loaded:', requests.length);
+                debugLog('Loaded ' + requests.length + ' requests');
                 displayRequests();
                 updateStats();
-                return requests;
             } catch (error) {
-                console.error("Error loading requests:", error);
-                showNotification('Error loading requests: ' + error.message, 'error');
-                
-                // Try alternative loading without orderBy in case of index issues
-                try {
-                    console.log('Trying alternative loading method...');
-                    const querySnapshot = await getDocs(collection(db, 'cms_requests'));
-                    requests = [];
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        console.log('Alternative load - request:', doc.id, data);
-                        requests.push({ id: doc.id, ...data });
-                    });
-                    console.log('Alternative load - total requests:', requests.length);
-                    displayRequests();
-                    updateStats();
-                } catch (altError) {
-                    console.error("Alternative loading also failed:", altError);
-                    showNotification('Unable to load requests. Check console for details.', 'error');
-                }
-            }
-        }
-
-        async function loadCounters() {
-            try {
-                const querySnapshot = await getDocs(collection(db, 'counters'));
-                querySnapshot.forEach((doc) => {
-                    requestCounters[doc.id] = doc.data().count || 0;
-                });
-            } catch (error) {
-                console.error("Error loading counters:", error);
-            }
-        }
-
-        function generateRequestId() {
-            const department = document.getElementById('department').value;
-            if (!department) return;
-
-            const year = new Date().getFullYear();
-            const currentCount = requestCounters[department] || 0;
-            const newCount = currentCount + 1;
-            const requestId = `${department}-${year}-${String(newCount).padStart(4, '0')}`;
-            
-            document.getElementById('requestId').value = requestId;
-        }
-
-        async function updateCounter(department) {
-            try {
-                const currentCount = requestCounters[department] || 0;
-                const newCount = currentCount + 1;
-                requestCounters[department] = newCount;
-                
-                await addDoc(collection(db, 'counters'), {
-                    department: department,
-                    count: newCount,
-                    updatedAt: serverTimestamp()
-                });
-            } catch (error) {
-                console.error("Error updating counter:", error);
-            }
-        }
-
-        function setupEventListeners() {
-            // Department change
-            document.getElementById('department').addEventListener('change', function() {
-                const otherGroup = document.getElementById('otherDepartmentGroup');
-                if (this.value === 'OTHER') {
-                    otherGroup.style.display = 'block';
-                } else {
-                    otherGroup.style.display = 'none';
-                }
-                generateRequestId();
-            });
-
-            // File input
-            document.getElementById('fileInput').addEventListener('change', handleFileSelection);
-
-            // Search and filters
-            document.getElementById('searchBox').addEventListener('input', applyFilters);
-            document.getElementById('departmentFilter').addEventListener('change', applyFilters);
-            document.getElementById('statusFilter').addEventListener('change', applyFilters);
-            document.getElementById('priorityFilter').addEventListener('change', applyFilters);
-            document.getElementById('dateFilter').addEventListener('change', applyFilters);
-
-            // Form submission
-            document.getElementById('cmsForm').addEventListener('submit', handleFormSubmission);
-        }
-
-        function handleFileSelection(event) {
-            const files = Array.from(event.target.files);
-            selectedFiles = [...selectedFiles, ...files];
-            displayFileList();
-        }
-
-        function displayFileList() {
-            const fileList = document.getElementById('fileList');
-            fileList.innerHTML = '';
-            
-            selectedFiles.forEach((file, index) => {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                fileItem.innerHTML = `
-                    <span>📄 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</span>
-                    <button type="button" onclick="removeFile(${index})" style="background: #dc3545; color: white; border: none; border-radius: 3px; padding: 3px 8px;">✕</button>
-                `;
-                fileList.appendChild(fileItem);
-            });
-        }
-
-        window.removeFile = function(index) {
-            selectedFiles.splice(index, 1);
-            displayFileList();
-        };
-
-        async function uploadFiles(requestId) {
-            const uploadPromises = selectedFiles.map(async (file, index) => {
-                const storageRef = ref(storage, `cms-attachments/${requestId}/${file.name}`);
-                const snapshot = await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(snapshot.ref);
-                return {
-                    name: file.name,
-                    url: downloadURL,
-                    size: file.size,
-                    type: file.type
-                };
-            });
-            
-            return await Promise.all(uploadPromises);
-        }
-
-        async function handleFormSubmission(event) {
-            event.preventDefault();
-            
-            // Validate required fields
-            const requiredFields = ['department', 'programType', 'requestType', 'priority', 'deadline', 'title', 'description'];
-            for (let field of requiredFields) {
-                const value = document.getElementById(field).value.trim();
-                if (!value) {
-                    showNotification(`Please fill in the ${field} field`, 'error');
-                    return;
-                }
-            }
-            
-            const formData = {
-                requestId: document.getElementById('requestId').value,
-                department: document.getElementById('department').value,
-                programType: document.getElementById('programType').value,
-                requestType: document.getElementById('requestType').value,
-                priority: document.getElementById('priority').value,
-                deadline: document.getElementById('deadline').value,
-                title: document.getElementById('title').value,
-                description: document.getElementById('description').value,
-                notes: document.getElementById('notes').value || '',
-                otherDepartment: document.getElementById('otherDepartment').value || '',
-                status: 'HOD',
-                stage: 'HOD',
-                workflowStep: 1,
-                createdAt: new Date(), // Use regular Date instead of serverTimestamp for debugging
-                updatedAt: new Date(),
-                submittedBy: 'HOD User',
-                statusHistory: [{
-                    status: 'HOD',
-                    timestamp: new Date(),
-                    action: 'Request Created',
-                    user: 'HOD User'
-                }]
-            };
-
-            console.log('Submitting form data:', formData);
-
-            try {
-                showNotification('Saving request...', 'warning');
-                
-                // Upload files if any
-                let attachments = [];
-                if (selectedFiles.length > 0) {
-                    console.log('Uploading files:', selectedFiles.length);
-                    attachments = await uploadFiles(formData.requestId);
-                    console.log('Files uploaded:', attachments);
-                }
-                
-                formData.attachments = attachments;
-
-                // Save to Firebase
-                console.log('Saving to Firebase...');
-                const docRef = await addDoc(collection(db, 'cms_requests'), formData);
-                console.log('Request saved with ID:', docRef.id);
-                
-                // Update counter
-                await updateCounter(formData.department);
-                
-                showNotification('✅ Request submitted successfully!', 'success');
-                
-                // Clear form and files
-                clearForm();
-                
-                // Force refresh data immediately
-                console.log('Refreshing data...');
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
-                await loadRequests();
-                
-            } catch (error) {
-                console.error("Error submitting request:", error);
-                showNotification('❌ Error submitting request: ' + error.message, 'error');
+                debugLog('Error loading requests: ' + error.message);
             }
         }
 
         function displayRequests() {
+            debugLog('Displaying ' + requests.length + ' requests');
             const container = document.getElementById('requestsList');
             
             if (requests.length === 0) {
@@ -1108,23 +556,11 @@
                 return;
             }
 
-            const filteredRequests = getFilteredRequests();
-            if (filteredRequests.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; color: #6c757d; padding: 20px;">
-                        No matching requests
-                    </div>
-                `;
-                return;
-            }
-
-            const requestsHTML = filteredRequests.slice(0, 10).map(request => `
+            const requestsHTML = requests.map(request => `
                 <div class="request-item">
                     <div class="request-header">
                         <div class="request-id">${request.requestId || 'No ID'}</div>
-                        <div class="request-status status-${(request.status || 'hod').toLowerCase()}">
-                            ${request.status || 'HOD'}
-                        </div>
+                        <div class="request-status">${request.status || 'HOD'}</div>
                     </div>
                     <div style="font-size: 0.9rem; margin-bottom: 5px;">
                         <strong>${request.title || 'No Title'}</strong>
@@ -1132,18 +568,8 @@
                     <div style="font-size: 0.8rem; color: #6c757d;">
                         ${request.department || 'No Dept'} | ${request.priority || 'Medium'} Priority
                     </div>
-                    <div style="font-size: 0.8rem; color: #6c757d;">
-                        ${request.createdAt ? new Date(request.createdAt.toDate()).toLocaleDateString() : new Date().toLocaleDateString()}
-                    </div>
-                    ${request.attachments && request.attachments.length > 0 ? 
-                        `<div style="font-size: 0.8rem; color: #667eea;">📎 ${request.attachments.length} file(s)</div>` 
-                        : ''}
                     <div style="margin-top: 10px;">
-                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 5px;" onclick="viewRequest('${request.id}')">👁️ View</button>
-                        <button class="btn btn-warning" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 5px;" onclick="moveToNextStage('${request.id}')">➡️ Next Stage</button>
-                        ${request.attachments && request.attachments.length > 0 ? 
-                            `<button class="btn btn-success" style="padding: 6px 12px; font-size: 0.8rem;" onclick="downloadAttachments('${request.id}')">📎 Files</button>` 
-                            : ''}
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem;" onclick="moveToNextStage('${request.id}')">➡️ Next Stage</button>
                     </div>
                 </div>
             `).join('');
@@ -1151,393 +577,119 @@
             container.innerHTML = requestsHTML;
         }
 
-        function getFilteredRequests() {
-            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-            const departmentFilter = document.getElementById('departmentFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
-            const priorityFilter = document.getElementById('priorityFilter').value;
-            const dateFilter = document.getElementById('dateFilter').value;
-
-            return requests.filter(request => {
-                const matchesSearch = !searchTerm || 
-                    request.requestId.toLowerCase().includes(searchTerm) ||
-                    request.title.toLowerCase().includes(searchTerm) ||
-                    request.department.toLowerCase().includes(searchTerm) ||
-                    request.status.toLowerCase().includes(searchTerm);
-
-                const matchesDepartment = !departmentFilter || request.department === departmentFilter;
-                const matchesStatus = !statusFilter || request.status === statusFilter;
-                const matchesPriority = !priorityFilter || request.priority === priorityFilter;
-                
-                let matchesDate = true;
-                if (dateFilter && request.createdAt) {
-                    const requestDate = new Date(request.createdAt.toDate()).toISOString().split('T')[0];
-                    matchesDate = requestDate === dateFilter;
-                }
-
-                return matchesSearch && matchesDepartment && matchesStatus && matchesPriority && matchesDate;
-            });
-        }
-
-        function applyFilters() {
-            displayRequests();
-        }
-
         function updateStats() {
             const total = requests.length;
             const pending = requests.filter(r => r.status !== 'COMPLETED').length;
             const completed = requests.filter(r => r.status === 'COMPLETED').length;
-            
-            const currentMonth = new Date().getMonth();
-            const currentYear = new Date().getFullYear();
             const monthly = requests.filter(r => {
                 if (!r.createdAt) return false;
-                const date = new Date(r.createdAt.toDate());
-                return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+                const date = new Date(r.createdAt);
+                const now = new Date();
+                return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
             }).length;
 
             document.getElementById('totalRequests').textContent = total;
             document.getElementById('pendingRequests').textContent = pending;
             document.getElementById('completedRequests').textContent = completed;
             document.getElementById('monthlyRequests').textContent = monthly;
+            
+            debugLog('Stats updated: ' + total + ' total, ' + pending + ' pending');
+        }
+
+        function setupEventListeners() {
+            debugLog('Setting up event listeners...');
+            
+            document.getElementById('cmsForm').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                debugLog('Form submission started');
+                
+                const formData = {
+                    requestId: document.getElementById('requestId').value,
+                    department: document.getElementById('department').value,
+                    programType: document.getElementById('programType').value,
+                    requestType: document.getElementById('requestType').value,
+                    priority: document.getElementById('priority').value,
+                    deadline: document.getElementById('deadline').value,
+                    title: document.getElementById('title').value,
+                    description: document.getElementById('description').value,
+                    notes: document.getElementById('notes').value || '',
+                    status: 'HOD',
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                };
+
+                debugLog('Form data prepared: ' + JSON.stringify(formData, null, 2));
+
+                try {
+                    debugLog('Saving to Firebase...');
+                    const docRef = await addDoc(collection(db, 'cms_requests'), formData);
+                    debugLog('Document saved with ID: ' + docRef.id);
+                    
+                    alert('✅ Request submitted successfully!');
+                    clearForm();
+                    await loadRequests();
+                } catch (error) {
+                    debugLog('Error saving document: ' + error.message);
+                    alert('❌ Error: ' + error.message);
+                }
+            });
         }
 
         window.clearForm = function() {
             document.getElementById('cmsForm').reset();
-            selectedFiles = [];
-            displayFileList();
-            generateRequestId();
+            document.getElementById('requestId').value = 'HDFC-2025-0001';
         };
 
-        window.viewRequest = function(requestId) {
-            const request = requests.find(r => r.id === requestId);
-            if (!request) return;
-
-            let attachmentsList = '';
-            if (request.attachments && request.attachments.length > 0) {
-                attachmentsList = request.attachments.map(att => 
-                    `<a href="${att.url}" target="_blank" style="color: #667eea; text-decoration: none;">📄 ${att.name}</a>`
-                ).join('<br>');
+        window.testFirebase = async function() {
+            debugLog('Manual Firebase test triggered');
+            const success = await testFirebaseConnection();
+            if (success) {
+                alert('✅ Firebase connection working!');
+            } else {
+                alert('❌ Firebase connection failed - check console');
             }
-
-            const details = `
-                <strong>Request ID:</strong> ${request.requestId}<br>
-                <strong>Department:</strong> ${request.department}<br>
-                <strong>Program Type:</strong> ${request.programType}<br>
-                <strong>Request Type:</strong> ${request.requestType}<br>
-                <strong>Priority:</strong> ${request.priority}<br>
-                <strong>Deadline:</strong> ${request.deadline}<br>
-                <strong>Title:</strong> ${request.title}<br>
-                <strong>Description:</strong> ${request.description}<br>
-                <strong>Status:</strong> ${request.status}<br>
-                ${request.notes ? `<strong>Notes:</strong> ${request.notes}<br>` : ''}
-                ${attachmentsList ? `<br><strong>Attachments:</strong><br>${attachmentsList}` : ''}
-            `;
-
-            alert(details);
         };
 
         window.moveToNextStage = async function(requestId) {
+            debugLog('Moving request to next stage: ' + requestId);
             const request = requests.find(r => r.id === requestId);
             if (!request) {
-                showNotification('Request not found', 'error');
+                debugLog('Request not found: ' + requestId);
                 return;
             }
 
             let nextStatus;
-            let nextStep;
-            let actionMessage;
-            let actionUser;
-
             switch (request.status) {
                 case 'HOD':
                     nextStatus = 'HOP';
-                    nextStep = 2;
-                    actionMessage = 'Submit to HOP (Checker) for review?';
-                    actionUser = 'HOD User';
                     break;
                 case 'HOP':
                     nextStatus = 'FPR';
-                    nextStep = 3;
-                    actionMessage = 'Approve and forward to Content Team FPR?';
-                    actionUser = 'HOP User';
                     break;
                 case 'FPR':
                     nextStatus = 'COMPLETED';
-                    nextStep = 4;
-                    actionMessage = 'Mark as completed and generate final export?';
-                    actionUser = 'FPR User';
                     break;
-                case 'COMPLETED':
-                    showNotification('Request is already completed', 'warning');
-                    return;
                 default:
                     nextStatus = 'HOP';
-                    nextStep = 2;
-                    actionMessage = 'Move to next stage?';
-                    actionUser = 'System User';
             }
 
-            if (confirm(`${actionMessage}\n\nRequest: ${request.requestId}\nTitle: ${request.title}`)) {
-                try {
-                    // Create status history entry
-                    const statusHistory = request.statusHistory || [];
-                    statusHistory.push({
-                        status: nextStatus,
-                        timestamp: new Date(),
-                        action: `Moved to ${nextStatus} stage`,
-                        user: actionUser,
-                        previousStatus: request.status
-                    });
-
-                    // Update request with new status
-                    const requestRef = doc(db, 'cms_requests', requestId);
-                    await updateDoc(requestRef, {
-                        status: nextStatus,
-                        stage: nextStatus,
-                        workflowStep: nextStep,
-                        updatedAt: serverTimestamp(),
-                        statusHistory: statusHistory,
-                        [`${nextStatus.toLowerCase()}ProcessedAt`]: serverTimestamp()
-                    });
-                    
-                    // If moving to completed, trigger export
-                    if (nextStatus === 'COMPLETED') {
-                        setTimeout(() => {
-                            generateExcelExport(request);
-                        }, 1000);
-                    }
-                    
-                    showNotification(`✅ Request ${request.requestId} moved to ${nextStatus} stage!`, 'success');
-                    
-                    // Force refresh to show updated data
-                    await loadRequests();
-                    
-                } catch (error) {
-                    console.error("Error moving to next stage:", error);
-                    showNotification('Error updating request: ' + error.message, 'error');
-                }
-            }
-        };
-
-        async function generateExcelExport(request) {
             try {
-                // Create Excel data
-                const excelData = [{
-                    'Request ID': request.requestId,
-                    'Department': request.department,
-                    'Program Type': request.programType,
-                    'Request Type': request.requestType,
-                    'Priority': request.priority,
-                    'Deadline': request.deadline,
-                    'Title': request.title,
-                    'Description': request.description,
-                    'Status': 'COMPLETED',
-                    'Completed Date': new Date().toLocaleDateString(),
-                    'Notes': request.notes || '',
-                    'Attachments': request.attachments ? request.attachments.length + ' files' : 'No files'
-                }];
-
-                const csvData = convertToCSV(excelData);
-                downloadCSV(csvData, `Completed_Request_${request.requestId}_${new Date().toISOString().split('T')[0]}.csv`);
-                
-                showNotification('Excel export generated successfully!', 'success');
-            } catch (error) {
-                console.error("Error generating export:", error);
-                showNotification('Error generating export', 'error');
-            }
-        }
-
-        async function updateRequestStatus(requestId, newStatus) {
-            try {
+                debugLog('Updating status to: ' + nextStatus);
                 const requestRef = doc(db, 'cms_requests', requestId);
                 await updateDoc(requestRef, {
-                    status: newStatus,
-                    stage: newStatus,
-                    updatedAt: serverTimestamp()
+                    status: nextStatus,
+                    updatedAt: new Date()
                 });
-                showNotification('Status updated successfully!', 'success');
+                debugLog('Status updated successfully');
+                alert('✅ Moved to ' + nextStatus + ' stage!');
+                await loadRequests();
             } catch (error) {
-                console.error("Error updating status:", error);
-                showNotification('Error updating status', 'error');
-            }
-        }
-
-        window.downloadAttachments = function(requestId) {
-            const request = requests.find(r => r.id === requestId);
-            if (!request || !request.attachments) return;
-
-            request.attachments.forEach(attachment => {
-                const link = document.createElement('a');
-                link.href = attachment.url;
-                link.download = attachment.name;
-                link.click();
-            });
-        };
-
-        window.exportAllData = function() {
-            if (requests.length === 0) {
-                showNotification('No data to export', 'warning');
-                return;
-            }
-
-            const csvData = convertToCSV(requests);
-            downloadCSV(csvData, `CMS_All_Requests_${new Date().toISOString().split('T')[0]}.csv`);
-            showNotification('Data exported successfully!', 'success');
-        };
-
-        window.downloadMonthlyData = function() {
-            const monthSelector = document.getElementById('monthSelector');
-            const selectedMonth = monthSelector.value;
-            
-            if (!selectedMonth) {
-                showNotification('Please select a month', 'warning');
-                return;
-            }
-
-            const [year, month] = selectedMonth.split('-').map(Number);
-            const monthlyRequests = requests.filter(r => {
-                if (!r.createdAt) return false;
-                const date = new Date(r.createdAt.toDate());
-                return date.getFullYear() === year && (date.getMonth() + 1) === month;
-            });
-
-            if (monthlyRequests.length === 0) {
-                showNotification('No data found for selected month', 'warning');
-                return;
-            }
-
-            const csvData = convertToCSV(monthlyRequests);
-            downloadCSV(csvData, `CMS_Monthly_${selectedMonth}_Requests.csv`);
-            showNotification('Monthly data downloaded!', 'success');
-        };
-
-        window.sendEmailReport = function() {
-            const monthlyRequests = requests.filter(r => {
-                if (!r.createdAt) return false;
-                const date = new Date(r.createdAt.toDate());
-                const now = new Date();
-                return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-            });
-
-            const emailBody = `Monthly CMS Report - ${new Date().toLocaleDateString()}
-            
-Total Requests This Month: ${monthlyRequests.length}
-Completed: ${monthlyRequests.filter(r => r.status === 'COMPLETED').length}
-Pending: ${monthlyRequests.filter(r => r.status !== 'COMPLETED').length}
-
-Recent Requests:
-${monthlyRequests.slice(0, 5).map(r => `- ${r.requestId}: ${r.title} (${r.status})`).join('\n')}
-
-Full report attached as CSV file.`;
-
-            const mailtoLink = `mailto:?subject=CMS Monthly Report&body=${encodeURIComponent(emailBody)}`;
-            window.open(mailtoLink);
-            
-            showNotification('Email draft opened! Attach the CSV export.', 'success');
-        };
-
-        window.clearPastData = function() {
-            if (!confirm('⚠️ This will permanently delete all requests older than 3 months. Are you sure?')) {
-                return;
-            }
-
-            const threeMonthsAgo = new Date();
-            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
-            const oldRequests = requests.filter(r => {
-                if (!r.createdAt) return false;
-                return new Date(r.createdAt.toDate()) < threeMonthsAgo;
-            });
-
-            if (oldRequests.length === 0) {
-                showNotification('No old data to clear', 'warning');
-                return;
-            }
-
-            if (confirm(`Found ${oldRequests.length} old requests. Proceed with deletion?`)) {
-                deleteOldRequests(oldRequests);
+                debugLog('Error updating status: ' + error.message);
+                alert('❌ Error: ' + error.message);
             }
         };
 
-        async function deleteOldRequests(oldRequests) {
-            try {
-                const deletePromises = oldRequests.map(request => 
-                    deleteDoc(doc(db, 'cms_requests', request.id))
-                );
-                await Promise.all(deletePromises);
-                showNotification(`${oldRequests.length} old requests deleted successfully!`, 'success');
-            } catch (error) {
-                console.error("Error deleting old requests:", error);
-                showNotification('Error deleting old requests', 'error');
-            }
-        }
-
-        function convertToCSV(data) {
-            const headers = [
-                'Request ID', 'Department', 'Program Type', 'Request Type', 'Priority',
-                'Deadline', 'Title', 'Description', 'Status', 'Created Date', 'Attachments'
-            ];
-
-            const csvRows = [headers.join(',')];
-            
-            data.forEach(request => {
-                const row = [
-                    `"${request.requestId}"`,
-                    `"${request.department}"`,
-                    `"${request.programType}"`,
-                    `"${request.requestType}"`,
-                    `"${request.priority}"`,
-                    `"${request.deadline}"`,
-                    `"${request.title?.replace(/"/g, '""') || ''}"`,
-                    `"${request.description?.replace(/"/g, '""') || ''}"`,
-                    `"${request.status}"`,
-                    `"${request.createdAt ? new Date(request.createdAt.toDate()).toLocaleDateString() : ''}"`,
-                    `"${request.attachments ? request.attachments.length + ' files' : 'No files'}"`
-                ];
-                csvRows.push(row.join(','));
-            });
-
-            return csvRows.join('\n');
-        }
-
-        function downloadCSV(csvData, filename) {
-            const blob = new Blob([csvData], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            link.click();
-            window.URL.revokeObjectURL(url);
-        }
-
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.classList.add('show');
-            }, 100);
-
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.remove();
-                    }
-                }, 300);
-            }, 3000);
-        }
-
-        // Initialize month selector
-        document.addEventListener('DOMContentLoaded', function() {
-            const monthSelector = document.getElementById('monthSelector');
-            const now = new Date();
-            const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            monthSelector.value = currentMonth;
-        });
+        debugLog('Script setup complete');
     </script>
 </body>
 </html>
