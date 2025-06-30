@@ -750,29 +750,61 @@
         }
 
         async function initializeCMSApp() {
-            await loadRequests();
-            await loadCounters();
-            setupRealtimeListener();
-            updateStats();
-            generateRequestId();
-            setupEventListeners();
+            console.log('Initializing CMS application...');
+            try {
+                await loadRequests();
+                await loadCounters();
+                setupRealtimeListener();
+                updateStats();
+                generateRequestId();
+                setupEventListeners();
+                console.log('CMS initialization complete');
+                
+                // Test Firebase connection
+                await testFirebaseConnection();
+            } catch (error) {
+                console.error('Error during CMS initialization:', error);
+                showNotification('Initialization error: ' + error.message, 'error');
+            }
+        }
+
+        async function testFirebaseConnection() {
+            try {
+                console.log('Testing Firebase connection...');
+                const testRef = collection(db, 'cms_requests');
+                const snapshot = await getDocs(testRef);
+                console.log('Firebase test successful. Document count:', snapshot.size);
+                showNotification('✅ Firebase connected successfully', 'success');
+            } catch (error) {
+                console.error('Firebase connection test failed:', error);
+                showNotification('❌ Firebase connection failed: ' + error.message, 'error');
+            }
         }
 
         function setupRealtimeListener() {
+            console.log('Setting up real-time listener...');
             const requestsRef = collection(db, 'cms_requests');
+            
             onSnapshot(requestsRef, (snapshot) => {
+                console.log('Real-time update received. Snapshot size:', snapshot.size);
                 requests = [];
                 snapshot.forEach((doc) => {
-                    requests.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    console.log('Real-time data:', doc.id, data);
+                    requests.push({ id: doc.id, ...data });
                 });
-                console.log('Loaded requests:', requests.length); // Debug log
+                console.log('Real-time total requests:', requests.length);
                 displayRequests();
                 updateStats();
                 updateWorkflowIndicator();
                 updateLastSync();
             }, (error) => {
                 console.error("Error in real-time listener:", error);
-                showNotification('Error loading real-time updates', 'error');
+                showNotification('Real-time updates failed: ' + error.message, 'error');
+                
+                // Fallback to manual loading
+                console.log('Falling back to manual loading...');
+                loadRequests();
             });
         }
 
@@ -843,17 +875,40 @@
 
         async function loadRequests() {
             try {
+                console.log('Loading requests from Firebase...');
                 const q = query(collection(db, 'cms_requests'), orderBy('createdAt', 'desc'));
                 const querySnapshot = await getDocs(q);
                 requests = [];
                 querySnapshot.forEach((doc) => {
-                    requests.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    console.log('Loaded request:', doc.id, data);
+                    requests.push({ id: doc.id, ...data });
                 });
+                console.log('Total requests loaded:', requests.length);
                 displayRequests();
                 updateStats();
+                return requests;
             } catch (error) {
                 console.error("Error loading requests:", error);
-                showNotification('Error loading requests', 'error');
+                showNotification('Error loading requests: ' + error.message, 'error');
+                
+                // Try alternative loading without orderBy in case of index issues
+                try {
+                    console.log('Trying alternative loading method...');
+                    const querySnapshot = await getDocs(collection(db, 'cms_requests'));
+                    requests = [];
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        console.log('Alternative load - request:', doc.id, data);
+                        requests.push({ id: doc.id, ...data });
+                    });
+                    console.log('Alternative load - total requests:', requests.length);
+                    displayRequests();
+                    updateStats();
+                } catch (altError) {
+                    console.error("Alternative loading also failed:", altError);
+                    showNotification('Unable to load requests. Check console for details.', 'error');
+                }
             }
         }
 
@@ -967,6 +1022,16 @@
         async function handleFormSubmission(event) {
             event.preventDefault();
             
+            // Validate required fields
+            const requiredFields = ['department', 'programType', 'requestType', 'priority', 'deadline', 'title', 'description'];
+            for (let field of requiredFields) {
+                const value = document.getElementById(field).value.trim();
+                if (!value) {
+                    showNotification(`Please fill in the ${field} field`, 'error');
+                    return;
+                }
+            }
+            
             const formData = {
                 requestId: document.getElementById('requestId').value,
                 department: document.getElementById('department').value,
@@ -976,14 +1041,14 @@
                 deadline: document.getElementById('deadline').value,
                 title: document.getElementById('title').value,
                 description: document.getElementById('description').value,
-                notes: document.getElementById('notes').value,
-                otherDepartment: document.getElementById('otherDepartment').value,
+                notes: document.getElementById('notes').value || '',
+                otherDepartment: document.getElementById('otherDepartment').value || '',
                 status: 'HOD',
                 stage: 'HOD',
-                workflowStep: 1, // 1=HOD, 2=HOP, 3=FPR, 4=COMPLETED
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-                submittedBy: 'HOD User', // In real app, this would be current user
+                workflowStep: 1,
+                createdAt: new Date(), // Use regular Date instead of serverTimestamp for debugging
+                updatedAt: new Date(),
+                submittedBy: 'HOD User',
                 statusHistory: [{
                     status: 'HOD',
                     timestamp: new Date(),
@@ -992,33 +1057,42 @@
                 }]
             };
 
+            console.log('Submitting form data:', formData);
+
             try {
-                showNotification('Uploading files and saving request...', 'warning');
+                showNotification('Saving request...', 'warning');
                 
                 // Upload files if any
                 let attachments = [];
                 if (selectedFiles.length > 0) {
+                    console.log('Uploading files:', selectedFiles.length);
                     attachments = await uploadFiles(formData.requestId);
+                    console.log('Files uploaded:', attachments);
                 }
                 
                 formData.attachments = attachments;
 
                 // Save to Firebase
+                console.log('Saving to Firebase...');
                 const docRef = await addDoc(collection(db, 'cms_requests'), formData);
-                console.log('Request saved with ID:', docRef.id); // Debug log
+                console.log('Request saved with ID:', docRef.id);
                 
                 // Update counter
                 await updateCounter(formData.department);
                 
-                showNotification('Request submitted to HOD stage successfully!', 'success');
+                showNotification('✅ Request submitted successfully!', 'success');
+                
+                // Clear form and files
                 clearForm();
                 
-                // Force refresh data
+                // Force refresh data immediately
+                console.log('Refreshing data...');
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
                 await loadRequests();
                 
             } catch (error) {
                 console.error("Error submitting request:", error);
-                showNotification('Error submitting request: ' + error.message, 'error');
+                showNotification('❌ Error submitting request: ' + error.message, 'error');
             }
         }
 
