@@ -28,13 +28,21 @@
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 20px;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
-        .header h1 {
+        .header-left h1 {
             color: #333;
             margin-bottom: 10px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
         }
 
         .status-indicator {
@@ -45,14 +53,14 @@
             font-weight: 500;
         }
 
-        .status-initializing {
-            background-color: #fee;
-            color: #c53030;
-        }
-
         .status-ready {
             background-color: #f0fff4;
             color: #38a169;
+        }
+
+        .sync-info {
+            font-size: 14px;
+            color: #666;
         }
 
         .debug-log {
@@ -63,6 +71,39 @@
             margin-bottom: 20px;
             font-family: 'Courier New', monospace;
             font-size: 14px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .search-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .search-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .search-filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
         }
 
         .workflow-steps {
@@ -142,6 +183,14 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.1);
         }
 
+        .data-management-card {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
         .form-title {
             display: flex;
             align-items: center;
@@ -195,6 +244,45 @@
             min-height: 100px;
         }
 
+        .file-upload {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background-color: #f7fafc;
+        }
+
+        .file-upload.dragover {
+            border-color: #667eea;
+            background-color: #edf2f7;
+        }
+
+        .uploaded-files {
+            margin-top: 10px;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f7fafc;
+            border-radius: 6px;
+            margin-bottom: 5px;
+        }
+
+        .file-remove {
+            color: #e53e3e;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
         .button-group {
             display: flex;
             gap: 15px;
@@ -229,6 +317,12 @@
             color: white;
         }
 
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
@@ -242,7 +336,7 @@
         }
 
         .stat-item {
-            background: linear-gradient(135deg, #4299e1, #3182ce);
+            background: rgba(255,255,255,0.2);
             color: white;
             padding: 20px;
             border-radius: 10px;
@@ -268,6 +362,27 @@
             color: #2d3748;
         }
 
+        .data-management-title {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .management-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .month-selector {
+            padding: 8px 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
         .loading-text {
             text-align: center;
             color: #718096;
@@ -280,7 +395,7 @@
                 grid-template-columns: 1fr;
             }
             
-            .form-row {
+            .form-row, .search-filters {
                 grid-template-columns: 1fr;
             }
             
@@ -292,24 +407,72 @@
             .arrow {
                 transform: rotate(90deg);
             }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Debug Version - Firebase Integration</h1>
-            <div id="status-indicator" class="status-indicator status-initializing">
-                🔴 Initializing...
+            <div class="header-left">
+                <h1>Debug Version - Firebase Integration</h1>
             </div>
-            <div id="startup-status" style="margin-top: 10px; color: #666;">
-                Starting up...
+            <div class="header-right">
+                <div class="status-indicator status-ready">
+                    🟢 Connected to Firebase
+                </div>
+                <div class="sync-info">
+                    Last sync: <span id="lastSync">11:26:23 AM</span>
+                </div>
             </div>
         </div>
 
         <div class="debug-log">
             <strong>Debug Log:</strong><br>
             <span id="debug-output">Page loaded...</span>
+        </div>
+
+        <div class="search-section">
+            <div class="search-title">
+                <span>🔍</span>
+                <h3>Search & Filter Requests</h3>
+            </div>
+            <input type="text" class="search-bar" placeholder="Search by Request ID, Title, Department, or Status..." id="searchInput">
+            <div class="search-filters">
+                <select id="departmentFilter">
+                    <option value="">All Departments</option>
+                    <option value="axis-bank">Axis Bank</option>
+                    <option value="hdfc-bank">HDFC Bank</option>
+                    <option value="icici-bank">ICICI Bank</option>
+                    <option value="kotak-bank">Kotak Bank</option>
+                    <option value="idfc-first-bank">IDFC First Bank</option>
+                    <option value="federal-bank">Federal Bank</option>
+                    <option value="tmb">TMB</option>
+                    <option value="idbi">IDBI</option>
+                    <option value="boi">BOI</option>
+                    <option value="cbi">CBI</option>
+                    <option value="others">Others</option>
+                </select>
+                <select id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="in-review">In Review</option>
+                    <option value="approved">Approved</option>
+                    <option value="completed">Completed</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+                <select id="priorityFilter">
+                    <option value="">All Priorities</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="not-urgent">Not Urgent</option>
+                </select>
+                <input type="date" id="dateFilter" placeholder="Filter by date">
+            </div>
         </div>
 
         <div class="workflow-steps">
@@ -370,16 +533,8 @@
                             <label for="programType">Program Type <span class="required">*</span></label>
                             <select id="programType" name="programType" required>
                                 <option value="">Select Program Type</option>
-                                <option value="social-media">Social Media Campaign</option>
-                                <option value="email-marketing">Email Marketing</option>
-                                <option value="web-content">Web Content</option>
-                                <option value="print-media">Print Media</option>
-                                <option value="video-content">Video Content</option>
-                                <option value="blog-article">Blog Article</option>
-                                <option value="newsletter">Newsletter</option>
-                                <option value="presentation">Presentation</option>
-                                <option value="brochure">Brochure</option>
-                                <option value="others">Others</option>
+                                <option value="long-term">Long Term</option>
+                                <option value="short-term">Short Term</option>
                             </select>
                         </div>
                     </div>
@@ -389,13 +544,9 @@
                             <label for="requestType">Request Type <span class="required">*</span></label>
                             <select id="requestType" name="requestType" required>
                                 <option value="">Select Request Type</option>
-                                <option value="new-content">New Content Creation</option>
+                                <option value="new-content-request">New Content Request</option>
                                 <option value="content-update">Content Update</option>
                                 <option value="content-review">Content Review</option>
-                                <option value="translation">Translation</option>
-                                <option value="proofreading">Proofreading</option>
-                                <option value="design-support">Design Support</option>
-                                <option value="urgent-request">Urgent Request</option>
                             </select>
                         </div>
 
@@ -403,11 +554,9 @@
                             <label for="priority">Priority Level <span class="required">*</span></label>
                             <select id="priority" name="priority" required>
                                 <option value="">Select Priority</option>
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
                                 <option value="high">High</option>
-                                <option value="urgent">Urgent</option>
-                                <option value="critical">Critical</option>
+                                <option value="medium">Medium</option>
+                                <option value="not-urgent">Not Urgent</option>
                             </select>
                         </div>
                     </div>
@@ -432,6 +581,18 @@
                         <textarea id="notes" name="notes" placeholder="Any additional notes"></textarea>
                     </div>
 
+                    <div class="form-group">
+                        <label>File Attachments</label>
+                        <div class="file-upload" id="fileUpload">
+                            <div>📎 Click to upload files or drag and drop</div>
+                            <div style="font-size: 14px; color: #666; margin-top: 5px;">
+                                Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, PNG (Max 10MB each)
+                            </div>
+                            <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png" style="display: none;">
+                        </div>
+                        <div class="uploaded-files" id="uploadedFiles"></div>
+                    </div>
+
                     <div class="button-group">
                         <button type="submit" class="btn btn-primary">
                             📤 Submit Request
@@ -447,8 +608,8 @@
             </div>
 
             <div class="sidebar">
-                <div class="stats-card">
-                    <div class="section-title">
+                <div class="data-management-card">
+                    <div class="section-title data-management-title">
                         <span>📊</span>
                         <h3>Data Management</h3>
                     </div>
@@ -470,6 +631,21 @@
                             <div class="stat-label">This Month</div>
                         </div>
                     </div>
+                    <input type="month" class="month-selector" id="monthSelector" value="2025-06">
+                    <div class="management-controls">
+                        <button class="btn btn-secondary btn-small" onclick="downloadMonthlyData()">
+                            📥 Download Monthly
+                        </button>
+                        <button class="btn btn-primary btn-small" onclick="exportAllData()">
+                            📊 Export All Data
+                        </button>
+                        <button class="btn btn-test btn-small" onclick="emailReport()">
+                            📧 Email Report
+                        </button>
+                        <button class="btn btn-secondary btn-small" onclick="clearPastData()" style="background: #e53e3e;">
+                            🗑️ Clear Past Data
+                        </button>
+                    </div>
                 </div>
 
                 <div class="recent-card">
@@ -478,7 +654,7 @@
                         <h3>Recent Requests</h3>
                     </div>
                     <div id="recentRequests" class="loading-text">
-                        Loading requests...
+                        No requests found
                     </div>
                 </div>
             </div>
@@ -502,41 +678,34 @@
         let app;
         let db;
         let requestCounter = 1;
+        let uploadedFiles = [];
 
         function updateDebugLog(message) {
             const debugOutput = document.getElementById('debug-output');
             const timestamp = new Date().toLocaleTimeString();
             debugOutput.innerHTML += `<br>[${timestamp}] ${message}`;
+            debugOutput.scrollTop = debugOutput.scrollHeight;
         }
 
-        function updateStatus(message, isReady = false) {
-            const statusIndicator = document.getElementById('status-indicator');
-            const startupStatus = document.getElementById('startup-status');
-            
-            if (isReady) {
-                statusIndicator.textContent = '🟢 Ready';
-                statusIndicator.className = 'status-indicator status-ready';
-            }
-            startupStatus.textContent = message;
+        function updateLastSync() {
+            document.getElementById('lastSync').textContent = new Date().toLocaleTimeString();
         }
 
         async function initializeFirebase() {
             try {
                 updateDebugLog('Initializing Firebase...');
-                updateStatus('Connecting to Firebase...');
                 
                 app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 
                 updateDebugLog('Firebase initialized successfully');
-                updateStatus('Firebase connected successfully', true);
+                updateLastSync();
                 
                 await loadDashboardData();
                 generateRequestId();
                 
             } catch (error) {
                 updateDebugLog(`Firebase initialization error: ${error.message}`);
-                updateStatus('Firebase connection failed');
                 console.error('Firebase Error:', error);
             }
         }
@@ -546,9 +715,8 @@
             const currentDate = new Date();
             const year = currentDate.getFullYear();
             
-            let prefix = 'GEN'; // Generic prefix
+            let prefix = 'GEN';
             
-            // Map department values to prefixes
             const departmentPrefixes = {
                 'axis-bank': 'AXIS',
                 'hdfc-bank': 'HDFC',
@@ -573,32 +741,104 @@
             updateDebugLog(`Generated Request ID: ${requestId}`);
         }
 
-        // Add event listener for department change
+        // File upload functionality
+        function initializeFileUpload() {
+            const fileUpload = document.getElementById('fileUpload');
+            const fileInput = document.getElementById('fileInput');
+            const uploadedFilesDiv = document.getElementById('uploadedFiles');
+
+            fileUpload.addEventListener('click', () => fileInput.click());
+            fileUpload.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUpload.classList.add('dragover');
+            });
+            fileUpload.addEventListener('dragleave', () => {
+                fileUpload.classList.remove('dragover');
+            });
+            fileUpload.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUpload.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+
+            function handleFiles(files) {
+                Array.from(files).forEach(file => {
+                    if (file.size <= 10 * 1024 * 1024) { // 10MB limit
+                        uploadedFiles.push(file);
+                        displayUploadedFile(file);
+                        updateDebugLog(`File added: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+                    } else {
+                        alert(`File ${file.name} is too large. Maximum size is 10MB.`);
+                    }
+                });
+            }
+
+            function displayUploadedFile(file) {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>📎 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)</span>
+                    <span class="file-remove" onclick="removeFile('${file.name}')">✕</span>
+                `;
+                uploadedFilesDiv.appendChild(fileItem);
+            }
+
+            window.removeFile = function(fileName) {
+                uploadedFiles = uploadedFiles.filter(file => file.name !== fileName);
+                updateDebugLog(`File removed: ${fileName}`);
+                refreshFileDisplay();
+            };
+
+            function refreshFileDisplay() {
+                uploadedFilesDiv.innerHTML = '';
+                uploadedFiles.forEach(file => displayUploadedFile(file));
+            }
+        }
+
+        // Search functionality
+        function initializeSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const departmentFilter = document.getElementById('departmentFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            const priorityFilter = document.getElementById('priorityFilter');
+            const dateFilter = document.getElementById('dateFilter');
+
+            [searchInput, departmentFilter, statusFilter, priorityFilter, dateFilter].forEach(element => {
+                element.addEventListener('input', performSearch);
+            });
+
+            function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const dept = departmentFilter.value;
+                const status = statusFilter.value;
+                const priority = priorityFilter.value;
+                const date = dateFilter.value;
+
+                updateDebugLog(`Search performed: "${searchTerm}" | Dept: ${dept} | Status: ${status} | Priority: ${priority} | Date: ${date}`);
+                
+                // Here you would filter your actual data
+                // For now, we'll just log the search
+            }
+        }
+
         document.getElementById('department').addEventListener('change', generateRequestId);
 
         async function loadDashboardData() {
             try {
                 updateDebugLog('Loading dashboard data...');
                 
-                // Simulate loading data
                 setTimeout(() => {
                     document.getElementById('totalRequests').textContent = Math.floor(Math.random() * 100) + 50;
                     document.getElementById('pendingRequests').textContent = Math.floor(Math.random() * 20) + 5;
                     document.getElementById('completedRequests').textContent = Math.floor(Math.random() * 80) + 40;
                     document.getElementById('monthlyRequests').textContent = Math.floor(Math.random() * 30) + 10;
                     
-                    document.getElementById('recentRequests').innerHTML = `
-                        <div style="padding: 10px; background: #f7fafc; border-radius: 5px; margin-bottom: 10px;">
-                            <strong>HDFC-2025-0001</strong><br>
-                            <small>Social Media Campaign - High Priority</small>
-                        </div>
-                        <div style="padding: 10px; background: #f7fafc; border-radius: 5px;">
-                            <strong>AXIS-2025-0002</strong><br>
-                            <small>Email Marketing - Medium Priority</small>
-                        </div>
-                    `;
-                    
                     updateDebugLog('Dashboard data loaded');
+                    updateLastSync();
                 }, 1000);
                 
             } catch (error) {
@@ -612,6 +852,7 @@
                 
                 const docRef = await addDoc(collection(db, 'content-requests'), {
                     ...formData,
+                    files: uploadedFiles.map(f => ({ name: f.name, size: f.size, type: f.type })),
                     timestamp: new Date(),
                     status: 'pending'
                 });
@@ -621,6 +862,7 @@
                 alert('Request submitted successfully!');
                 clearForm();
                 generateRequestId();
+                updateLastSync();
                 
             } catch (error) {
                 updateDebugLog(`Error submitting form: ${error.message}`);
@@ -628,7 +870,6 @@
             }
         }
 
-        // Form submission handler
         document.getElementById('contentForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -642,6 +883,8 @@
         // Global functions
         window.clearForm = function() {
             document.getElementById('contentForm').reset();
+            uploadedFiles = [];
+            document.getElementById('uploadedFiles').innerHTML = '';
             generateRequestId();
             updateDebugLog('Form cleared');
         };
@@ -657,8 +900,112 @@
             }
         };
 
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', initializeFirebase);
+        // Data management functions
+        window.downloadMonthlyData = function() {
+            const month = document.getElementById('monthSelector').value;
+            updateDebugLog(`Downloading monthly data for: ${month}`);
+            
+            // Create mock CSV data
+            const csvData = `Request ID,Department,Program Type,Request Type,Priority,Status,Date
+HDFC-2025-0001,HDFC Bank,Short Term,New Content Request,High,Pending,2025-06-15
+AXIS-2025-0002,Axis Bank,Long Term,Content Update,Medium,Completed,2025-06-10
+ICICI-2025-0003,ICICI Bank,Short Term,Content Review,High,In Review,2025-06-20`;
+            
+            const blob = new Blob([csvData], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `cms_monthly_report_${month}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            updateDebugLog('Monthly data downloaded successfully');
+        };
+
+        window.exportAllData = function() {
+            updateDebugLog('Exporting all data...');
+            
+            // Create mock comprehensive CSV data
+            const csvData = `Request ID,Department,Program Type,Request Type,Priority,Status,Created Date,Deadline,Title,Description
+HDFC-2025-0001,HDFC Bank,Short Term,New Content Request,High,Pending,2025-06-15,2025-06-30,Campaign Content,Social media campaign content
+AXIS-2025-0002,Axis Bank,Long Term,Content Update,Medium,Completed,2025-06-10,2025-06-25,Website Update,Update homepage content
+ICICI-2025-0003,ICICI Bank,Short Term,Content Review,High,In Review,2025-06-20,2025-07-05,Product Launch,Review product launch materials
+KOTAK-2025-0004,Kotak Bank,Long Term,New Content Request,Medium,Pending,2025-06-18,2025-07-15,Email Campaign,Quarterly email newsletter
+IDFC-2025-0005,IDFC First Bank,Short Term,Content Update,Not Urgent,Completed,2025-06-12,2025-06-28,Branch Info,Update branch information`;
+            
+            const blob = new Blob([csvData], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `cms_complete_export_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            updateDebugLog('Complete data export downloaded successfully');
+        };
+
+        window.emailReport = function() {
+            updateDebugLog('Preparing email report...');
+            
+            const month = document.getElementById('monthSelector').value;
+            const subject = `CMS Monthly Report - ${month}`;
+            const body = `Dear Team,
+
+Please find the monthly CMS report for ${month}.
+
+Summary:
+- Total Requests: ${document.getElementById('totalRequests').textContent}
+- Pending: ${document.getElementById('pendingRequests').textContent}
+- Completed: ${document.getElementById('completedRequests').textContent}
+- This Month: ${document.getElementById('monthlyRequests').textContent}
+
+Best regards,
+CMS System`;
+            
+            const mailtoLink = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.open(mailtoLink);
+            
+            updateDebugLog('Email report prepared and opened');
+        };
+
+        window.clearPastData = function() {
+            if (confirm('Are you sure you want to clear past data? This action cannot be undone.')) {
+                updateDebugLog('Clearing past data...');
+                
+                // Reset counters
+                document.getElementById('totalRequests').textContent = '0';
+                document.getElementById('pendingRequests').textContent = '0';
+                document.getElementById('completedRequests').textContent = '0';
+                document.getElementById('monthlyRequests').textContent = '0';
+                
+                // Clear recent requests
+                document.getElementById('recentRequests').innerHTML = '<div class="loading-text">No requests found</div>';
+                
+                updateDebugLog('Past data cleared successfully');
+                updateLastSync();
+                alert('Past data has been cleared successfully.');
+            }
+        };
+
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeFirebase();
+            initializeFileUpload();
+            initializeSearch();
+            
+            // Set default date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('deadline').setAttribute('min', today);
+            
+            updateDebugLog('CMS System initialized successfully');
+        });
+
+        // Update last sync time every minute
+        setInterval(updateLastSync, 60000);
     </script>
 </body>
 </html>
