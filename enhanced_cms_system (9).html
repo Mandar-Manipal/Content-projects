@@ -765,10 +765,38 @@
                 snapshot.forEach((doc) => {
                     requests.push({ id: doc.id, ...doc.data() });
                 });
+                console.log('Loaded requests:', requests.length); // Debug log
                 displayRequests();
                 updateStats();
+                updateWorkflowIndicator();
                 updateLastSync();
+            }, (error) => {
+                console.error("Error in real-time listener:", error);
+                showNotification('Error loading real-time updates', 'error');
             });
+        }
+
+        function updateWorkflowIndicator() {
+            // Reset all steps
+            document.getElementById('stepHOD').classList.remove('step-active');
+            document.getElementById('stepHOP').classList.remove('step-active');
+            document.getElementById('stepFPR').classList.remove('step-active');
+
+            // Count requests in each stage
+            const hodCount = requests.filter(r => r.status === 'HOD').length;
+            const hopCount = requests.filter(r => r.status === 'HOP').length;
+            const fprCount = requests.filter(r => r.status === 'FPR').length;
+
+            // Highlight active stages
+            if (hodCount > 0) {
+                document.getElementById('stepHOD').classList.add('step-active');
+            }
+            if (hopCount > 0) {
+                document.getElementById('stepHOP').classList.add('step-active');
+            }
+            if (fprCount > 0) {
+                document.getElementById('stepFPR').classList.add('step-active');
+            }
         }
 
         async function loadRequests() {
@@ -926,13 +954,17 @@
                 formData.attachments = attachments;
 
                 // Save to Firebase
-                await addDoc(collection(db, 'cms_requests'), formData);
+                const docRef = await addDoc(collection(db, 'cms_requests'), formData);
+                console.log('Request saved with ID:', docRef.id); // Debug log
                 
                 // Update counter
                 await updateCounter(formData.department);
                 
                 showNotification('Request submitted successfully!', 'success');
                 clearForm();
+                
+                // Force refresh data
+                await loadRequests();
                 
             } catch (error) {
                 console.error("Error submitting request:", error);
@@ -953,31 +985,40 @@
             }
 
             const filteredRequests = getFilteredRequests();
+            if (filteredRequests.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                        No matching requests
+                    </div>
+                `;
+                return;
+            }
+
             const requestsHTML = filteredRequests.slice(0, 10).map(request => `
                 <div class="request-item">
                     <div class="request-header">
-                        <div class="request-id">${request.requestId}</div>
-                        <div class="request-status status-${request.status.toLowerCase()}">
-                            ${request.status}
+                        <div class="request-id">${request.requestId || 'No ID'}</div>
+                        <div class="request-status status-${(request.status || 'hod').toLowerCase()}">
+                            ${request.status || 'HOD'}
                         </div>
                     </div>
                     <div style="font-size: 0.9rem; margin-bottom: 5px;">
-                        <strong>${request.title}</strong>
+                        <strong>${request.title || 'No Title'}</strong>
                     </div>
                     <div style="font-size: 0.8rem; color: #6c757d;">
-                        ${request.department} | ${request.priority} Priority
+                        ${request.department || 'No Dept'} | ${request.priority || 'Medium'} Priority
                     </div>
                     <div style="font-size: 0.8rem; color: #6c757d;">
-                        ${request.createdAt ? new Date(request.createdAt.toDate()).toLocaleDateString() : 'Unknown date'}
+                        ${request.createdAt ? new Date(request.createdAt.toDate()).toLocaleDateString() : new Date().toLocaleDateString()}
                     </div>
                     ${request.attachments && request.attachments.length > 0 ? 
                         `<div style="font-size: 0.8rem; color: #667eea;">📎 ${request.attachments.length} file(s)</div>` 
                         : ''}
                     <div style="margin-top: 10px;">
-                        <button class="btn btn-primary btn-sm" onclick="viewRequest('${request.id}')">👁️ View</button>
-                        <button class="btn btn-warning btn-sm" onclick="updateStatus('${request.id}')">📝 Update</button>
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 5px;" onclick="viewRequest('${request.id}')">👁️ View</button>
+                        <button class="btn btn-warning" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 5px;" onclick="moveToNextStage('${request.id}')">➡️ Next Stage</button>
                         ${request.attachments && request.attachments.length > 0 ? 
-                            `<button class="btn btn-success btn-sm" onclick="downloadAttachments('${request.id}')">📎 Files</button>` 
+                            `<button class="btn btn-success" style="padding: 6px 12px; font-size: 0.8rem;" onclick="downloadAttachments('${request.id}')">📎 Files</button>` 
                             : ''}
                     </div>
                 </div>
@@ -1072,15 +1113,78 @@
             alert(details);
         };
 
-        window.updateStatus = function(requestId) {
+        window.moveToNextStage = async function(requestId) {
             const request = requests.find(r => r.id === requestId);
             if (!request) return;
 
-            const newStatus = prompt(`Current status: ${request.status}\nEnter new status (HOD/HOP/FPR/COMPLETED):`, request.status);
-            if (newStatus && ['HOD', 'HOP', 'FPR', 'COMPLETED'].includes(newStatus.toUpperCase())) {
-                updateRequestStatus(requestId, newStatus.toUpperCase());
+            let nextStatus;
+            let actionMessage;
+
+            switch (request.status) {
+                case 'HOD':
+                    nextStatus = 'HOP';
+                    actionMessage = 'Move to HOP (Checker) stage?';
+                    break;
+                case 'HOP':
+                    nextStatus = 'FPR';
+                    actionMessage = 'Approve and move to FPR (Final Processing) stage?';
+                    break;
+                case 'FPR':
+                    nextStatus = 'COMPLETED';
+                    actionMessage = 'Mark as completed and generate Excel export?';
+                    break;
+                case 'COMPLETED':
+                    showNotification('Request is already completed', 'warning');
+                    return;
+                default:
+                    nextStatus = 'HOP';
+                    actionMessage = 'Move to next stage?';
+            }
+
+            if (confirm(actionMessage)) {
+                try {
+                    await updateRequestStatus(requestId, nextStatus);
+                    
+                    // If moving to completed, trigger export
+                    if (nextStatus === 'COMPLETED') {
+                        generateExcelExport(request);
+                    }
+                    
+                    showNotification(`Request moved to ${nextStatus} stage successfully!`, 'success');
+                } catch (error) {
+                    console.error("Error moving to next stage:", error);
+                    showNotification('Error updating request status', 'error');
+                }
             }
         };
+
+        async function generateExcelExport(request) {
+            try {
+                // Create Excel data
+                const excelData = [{
+                    'Request ID': request.requestId,
+                    'Department': request.department,
+                    'Program Type': request.programType,
+                    'Request Type': request.requestType,
+                    'Priority': request.priority,
+                    'Deadline': request.deadline,
+                    'Title': request.title,
+                    'Description': request.description,
+                    'Status': 'COMPLETED',
+                    'Completed Date': new Date().toLocaleDateString(),
+                    'Notes': request.notes || '',
+                    'Attachments': request.attachments ? request.attachments.length + ' files' : 'No files'
+                }];
+
+                const csvData = convertToCSV(excelData);
+                downloadCSV(csvData, `Completed_Request_${request.requestId}_${new Date().toISOString().split('T')[0]}.csv`);
+                
+                showNotification('Excel export generated successfully!', 'success');
+            } catch (error) {
+                console.error("Error generating export:", error);
+                showNotification('Error generating export', 'error');
+            }
+        }
 
         async function updateRequestStatus(requestId, newStatus) {
             try {
