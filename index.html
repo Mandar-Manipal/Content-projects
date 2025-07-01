@@ -1124,6 +1124,12 @@
                             <button class="btn btn-warning" onclick="generateHopReport()">
                                 📊 Generate Report
                             </button>
+                            <button class="btn btn-primary" onclick="refreshHopData()">
+                                🔄 Refresh Data
+                            </button>
+                            <button class="btn btn-warning" onclick="showAllHopRequests()">
+                                👁️ Show All Requests
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1211,6 +1217,9 @@
                         </button>
                         <button class="btn btn-warning" onclick="createTestRequest()">
                             🧪 Create Test Request
+                        </button>
+                        <button class="btn btn-success" onclick="createIDBITestRequest()">
+                            🏦 Create IDBI Test Request
                         </button>
                     </div>
                 </div>
@@ -1858,7 +1867,21 @@ card">
             const requestQueue = document.getElementById('hopRequestQueue');
             
             if (deptRequests.length === 0) {
-                requestQueue.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No pending requests for your department</div>';
+                const allDeptRequests = allRequests.filter(req => req.department === currentUser.department);
+                requestQueue.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">📭</div>
+                        <div style="font-size: 18px; margin-bottom: 15px;">No pending requests for your department</div>
+                        <div style="font-size: 14px; color: #999; margin-bottom: 20px;">
+                            Total requests for ${departments[currentUser.department].name}: ${allDeptRequests.length}<br>
+                            Pending: ${allDeptRequests.filter(r => r.status === 'pending').length} | 
+                            Approved: ${allDeptRequests.filter(r => r.status === 'approved').length} | 
+                            Completed: ${allDeptRequests.filter(r => r.status === 'completed').length}
+                        </div>
+                        <button class="btn btn-primary" onclick="refreshHopData()">🔄 Refresh Data</button>
+                        <button class="btn btn-warning" onclick="showAllHopRequests()">👁️ Show All Requests</button>
+                    </div>
+                `;
                 return;
             }
 
@@ -2369,6 +2392,117 @@ CMS System`;
             loadContentStats();
             loadContentRequests();
             alert('Test request IDFC-2025-0001 created/updated successfully!');
+        }
+
+        // HOP debugging functions
+        function refreshHopData() {
+            // Force reload data from localStorage
+            allRequests = JSON.parse(localStorage.getItem('cms_requests') || '[]');
+            loadHopStats();
+            loadHopRequests();
+            alert('HOP data refreshed successfully!');
+        }
+
+        function showAllHopRequests() {
+            const requestQueue = document.getElementById('hopRequestQueue');
+            const deptRequests = allRequests.filter(req => req.department === currentUser.department);
+            
+            if (deptRequests.length === 0) {
+                requestQueue.innerHTML = `<div style="text-align: center; color: #666; padding: 40px;">
+                    No requests found for ${departments[currentUser.department].name}
+                </div>`;
+                return;
+            }
+
+            const groupedRequests = {
+                pending: deptRequests.filter(req => req.status === 'pending'),
+                approved: deptRequests.filter(req => req.status === 'approved'),
+                completed: deptRequests.filter(req => req.status === 'completed'),
+                rejected: deptRequests.filter(req => req.status === 'rejected')
+            };
+
+            let html = `<div style="margin-bottom: 20px;">
+                <h3>🔍 All Requests for ${departments[currentUser.department].name}</h3>
+            </div>`;
+            
+            Object.keys(groupedRequests).forEach(status => {
+                const requests = groupedRequests[status];
+                if (requests.length > 0) {
+                    html += `
+                        <div style="margin-bottom: 30px;">
+                            <h4 style="color: #2d3748; margin-bottom: 15px; text-transform: capitalize;">
+                                ${status} Requests (${requests.length})
+                            </h4>
+                            ${requests.map(req => `
+                                <div class="request-card" style="margin-bottom: 10px;">
+                                    <div class="request-header">
+                                        <span class="request-id">${req.requestId}</span>
+                                        <span class="status-badge status-${req.status}">${req.status}</span>
+                                    </div>
+                                    <div style="font-size: 14px; color: #666;">
+                                        <strong>Title:</strong> ${req.title}<br>
+                                        <strong>Submitted:</strong> ${new Date(req.submittedDate).toLocaleDateString()}
+                                        ${req.approvedDate ? `<br><strong>Approved:</strong> ${new Date(req.approvedDate).toLocaleDateString()}` : ''}
+                                    </div>
+                                    ${status === 'pending' ? `
+                                        <div style="margin-top: 10px;">
+                                            <button class="btn btn-success btn-small" onclick="approveRequest('${req.requestId}')">Approve</button>
+                                            <button class="btn btn-danger btn-small" onclick="rejectRequest('${req.requestId}')">Reject</button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            });
+
+            html += `
+                <div style="margin-top: 30px; text-align: center;">
+                    <button class="btn btn-primary" onclick="loadHopRequests()">← Back to Pending Only</button>
+                </div>
+            `;
+
+            requestQueue.innerHTML = html;
+        }
+
+        function createIDBITestRequest() {
+            const testRequest = {
+                requestId: 'IDBI-2025-0001',
+                department: 'idbi',
+                programType: 'short-term',
+                requestType: 'new-content-request',
+                priority: 'high',
+                deadline: '2025-02-10',
+                title: 'IDBI Content Request',
+                description: 'Test request for IDBI Bank content development',
+                notes: 'This is a test request created for IDBI debugging',
+                submittedBy: 'IDBI_HOD',
+                submittedDate: new Date().toISOString(),
+                status: 'pending',
+                files: []
+            };
+
+            // Check if request already exists
+            const existingIndex = allRequests.findIndex(req => req.requestId === testRequest.requestId);
+            if (existingIndex !== -1) {
+                allRequests[existingIndex] = testRequest;
+            } else {
+                allRequests.push(testRequest);
+            }
+
+            localStorage.setItem('cms_requests', JSON.stringify(allRequests));
+            
+            // Refresh current view based on user role
+            if (currentUser.role === 'hop') {
+                loadHopStats();
+                loadHopRequests();
+            } else if (currentUser.role === 'hod') {
+                loadHodStats();
+                loadHodRequests();
+            }
+            
+            alert('Test request IDBI-2025-0001 created successfully! Check your pending requests.');
         }
 
         // Quick action functions
