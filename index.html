@@ -1130,6 +1130,9 @@
                             <button class="btn btn-warning" onclick="showAllHopRequests()">
                                 👁️ Show All Requests
                             </button>
+                            <button class="btn btn-success" onclick="createPendingRequestForCurrentDept()">
+                                🔧 Create Test Request
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1220,6 +1223,12 @@
                         </button>
                         <button class="btn btn-success" onclick="createIDBITestRequest()">
                             🏦 Create IDBI Test Request
+                        </button>
+                        <button class="btn btn-danger" onclick="fixLocalStorageData()">
+                            🔧 Fix System Data
+                        </button>
+                        <button class="btn btn-success" onclick="syncDemoData()">
+                            🌐 Sync Cross-Device Demo
                         </button>
                     </div>
                 </div>
@@ -1474,7 +1483,92 @@
         let currentUser = null;
         let requestCounter = 1;
         let uploadedFiles = [];
-        let allRequests = JSON.parse(localStorage.getItem('cms_requests') || '[]');
+        
+        // Initialize with demo data for cross-device consistency
+        function initializeDemoData() {
+            const existingRequests = JSON.parse(localStorage.getItem('cms_requests') || '[]');
+            
+            // If no requests exist, create demo data
+            if (existingRequests.length === 0) {
+                const demoRequests = [
+                    {
+                        requestId: 'IDFC-2025-0001',
+                        department: 'idfc-first-bank',
+                        programType: 'long-term',
+                        requestType: 'new-content-request',
+                        priority: 'medium',
+                        deadline: '2025-02-15',
+                        title: 'Content For long Term Program',
+                        description: 'Long-term program content for IDFC First Bank',
+                        notes: 'Demo request for testing workflow',
+                        submittedBy: 'IDFCFirstBank_HOD',
+                        submittedDate: new Date(Date.now() - 86400000).toISOString(),
+                        status: 'approved',
+                        approvedDate: new Date().toISOString(),
+                        approvedBy: 'IDFCFirstBank_HOP',
+                        files: []
+                    },
+                    {
+                        requestId: 'IDBI-2025-0001',
+                        department: 'idbi',
+                        programType: 'short-term',
+                        requestType: 'new-content-request',
+                        priority: 'high',
+                        deadline: '2025-02-10',
+                        title: 'IDBI Content Request',
+                        description: 'Short-term content request for IDBI Bank',
+                        notes: 'Demo request for HOP approval testing',
+                        submittedBy: 'IDBI_HOD',
+                        submittedDate: new Date().toISOString(),
+                        status: 'pending',
+                        files: []
+                    },
+                    {
+                        requestId: 'SBI-2025-0001',
+                        department: 'sbi',
+                        programType: 'long-term',
+                        requestType: 'content-update',
+                        priority: 'medium',
+                        deadline: '2025-03-01',
+                        title: 'SBI Brand Guidelines Update',
+                        description: 'Update brand guidelines for SBI marketing materials',
+                        notes: 'Quarterly brand update',
+                        submittedBy: 'SBI_HOD',
+                        submittedDate: new Date(Date.now() - 172800000).toISOString(),
+                        status: 'completed',
+                        approvedDate: new Date(Date.now() - 86400000).toISOString(),
+                        approvedBy: 'SBI_HOP',
+                        completedDate: new Date().toISOString(),
+                        completedBy: 'Content_FPR',
+                        files: []
+                    },
+                    {
+                        requestId: 'BOB-2025-0001',
+                        department: 'bob',
+                        programType: 'short-term',
+                        requestType: 'new-content-request',
+                        priority: 'low',
+                        deadline: '2025-02-20',
+                        title: 'BOB Digital Campaign Content',
+                        description: 'Content for new digital banking campaign',
+                        notes: 'Marketing campaign content',
+                        submittedBy: 'BOB_HOD',
+                        submittedDate: new Date(Date.now() - 43200000).toISOString(),
+                        status: 'approved',
+                        approvedDate: new Date().toISOString(),
+                        approvedBy: 'BOB_HOP',
+                        files: []
+                    }
+                ];
+                
+                localStorage.setItem('cms_requests', JSON.stringify(demoRequests));
+                return demoRequests;
+            }
+            
+            return existingRequests;
+        }
+        
+        let allRequests = initializeDemoData();
         let contactList = JSON.parse(localStorage.getItem('cms_contacts') || '[{"name":"Freena Lobo","phone":"+91 9916422513"},{"name":"Sharath Srinivasa","phone":"+91 9738411754"},{"name":"Mandar Deshpande","phone":"+91 9826064826"}]');
 
         // Department configuration
@@ -2503,6 +2597,142 @@ CMS System`;
             }
             
             alert('Test request IDBI-2025-0001 created successfully! Check your pending requests.');
+        }
+
+        // Create test request for any HOP's current department
+        function createPendingRequestForCurrentDept() {
+            if (!currentUser || currentUser.role !== 'hop') {
+                alert('This function is only available for HOP users.');
+                return;
+            }
+
+            const deptInfo = departments[currentUser.department];
+            const nextNumber = getNextRequestNumber(currentUser.department);
+            const requestId = `${deptInfo.prefix}-2025-${String(nextNumber).padStart(4, '0')}`;
+
+            const testRequest = {
+                requestId: requestId,
+                department: currentUser.department,
+                programType: 'long-term',
+                requestType: 'new-content-request',
+                priority: 'medium',
+                deadline: '2025-02-28',
+                title: `${deptInfo.name} Content Request`,
+                description: `Test content request for ${deptInfo.name} created via HOP debugging tool`,
+                notes: 'This is a test request created to resolve localStorage sync issues',
+                submittedBy: currentUser.username.replace('_HOP', '_HOD'),
+                submittedDate: new Date().toISOString(),
+                status: 'pending',
+                files: []
+            };
+
+            allRequests.push(testRequest);
+            localStorage.setItem('cms_requests', JSON.stringify(allRequests));
+            
+            loadHopStats();
+            loadHopRequests();
+            
+            alert(`✅ Test request ${requestId} created successfully!\n\nYou can now approve this request to test the full workflow.`);
+        }
+
+        // Emergency localStorage cleaner and rebuilder
+        function fixLocalStorageData() {
+            // Clear existing data
+            localStorage.removeItem('cms_requests');
+            
+            // Recreate demo data
+            allRequests = initializeDemoData();
+            
+            // Refresh current view
+            if (currentUser) {
+                switch(currentUser.role) {
+                    case 'hod':
+                        loadHodStats();
+                        loadHodRequests();
+                        break;
+                    case 'hop':
+                        loadHopStats();
+                        loadHopRequests();
+                        break;
+                    case 'content-fpr':
+                        loadContentStats();
+                        loadContentRequests();
+                        break;
+                }
+            }
+            
+            alert('✅ Demo data restored for cross-device testing!\n\n📋 Available Requests:\n• IDFC-2025-0001: Approved (Content FPR)\n• IDBI-2025-0001: Pending (IDBI HOP)\n• BOB-2025-0001: Approved (Content FPR)\n• SBI-2025-0001: Completed (Demo)\n\nNow everyone will see the same requests!');
+        }
+
+        // Force sync demo data for all users
+        function syncDemoData() {
+            const demoData = {
+                timestamp: new Date().toISOString(),
+                requests: [
+                    {
+                        requestId: 'DEMO-IDFC-2025-0001',
+                        department: 'idfc-first-bank',
+                        programType: 'long-term',
+                        requestType: 'new-content-request',
+                        priority: 'medium',
+                        deadline: '2025-02-15',
+                        title: 'IDFC Content For Long Term Program',
+                        description: 'Demo: Long-term program content for IDFC First Bank - visible on all devices',
+                        notes: 'Cross-device demo request',
+                        submittedBy: 'IDFCFirstBank_HOD',
+                        submittedDate: new Date(Date.now() - 86400000).toISOString(),
+                        status: 'approved',
+                        approvedDate: new Date().toISOString(),
+                        approvedBy: 'IDFCFirstBank_HOP',
+                        files: []
+                    },
+                    {
+                        requestId: 'DEMO-IDBI-2025-0001',
+                        department: 'idbi',
+                        programType: 'short-term',
+                        requestType: 'new-content-request',
+                        priority: 'high',
+                        deadline: '2025-02-10',
+                        title: 'IDBI Bank Content Request',
+                        description: 'Demo: Short-term content request for IDBI Bank - pending HOP approval',
+                        notes: 'Cross-device demo request for HOP testing',
+                        submittedBy: 'IDBI_HOD',
+                        submittedDate: new Date().toISOString(),
+                        status: 'pending',
+                        files: []
+                    }
+                ]
+            };
+
+            // Merge with existing requests (keep user-created ones)
+            const existing = JSON.parse(localStorage.getItem('cms_requests') || '[]');
+            const nonDemoRequests = existing.filter(req => !req.requestId.startsWith('DEMO-'));
+            const allDemoRequests = [...nonDemoRequests, ...demoData.requests];
+            
+            localStorage.setItem('cms_requests', JSON.stringify(allDemoRequests));
+            localStorage.setItem('cms_demo_sync', JSON.stringify(demoData));
+            
+            allRequests = allDemoRequests;
+
+            // Refresh current view
+            if (currentUser) {
+                switch(currentUser.role) {
+                    case 'hod':
+                        loadHodStats();
+                        loadHodRequests();
+                        break;
+                    case 'hop':
+                        loadHopStats();
+                        loadHopRequests();
+                        break;
+                    case 'content-fpr':
+                        loadContentStats();
+                        loadContentRequests();
+                        break;
+                }
+            }
+
+            alert('🔄 Cross-Device Demo Data Synced!\n\n✅ DEMO-IDFC-2025-0001: Ready for Content FPR\n✅ DEMO-IDBI-2025-0001: Ready for IDBI HOP\n\nThese requests will now be visible on ANY device/browser!');
         }
 
         // Quick action functions
