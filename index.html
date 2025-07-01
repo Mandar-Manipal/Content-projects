@@ -726,6 +726,50 @@
             }
         }
 
+        /* Contact Styles */
+        .contact-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .contact-item {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .contact-item:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .contact-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .contact-name {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 18px;
+        }
+
+        .contact-phone {
+            color: #667eea;
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .contact-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         /* Hide sections initially */
         .app-section {
             display: none;
@@ -748,7 +792,6 @@
             <ul class="nav-links" id="navLinks">
                 <li><a href="#" onclick="showLanding()" id="nav-home"><span>🏠</span> Home</a></li>
                 <li><a href="#" onclick="showLogin()" id="nav-cms"><span>📝</span> CMS Portal</a></li>
-                <li><a href="https://github.com/Mandar-Manipal/Content-projects" target="_blank"><span>📁</span> Repository</a></li>
                 <li><a href="#" onclick="showDocumentation()"><span>📚</span> Documentation</a></li>
                 <li><a href="#" onclick="showContact()"><span>📞</span> Contact</a></li>
             </ul>
@@ -783,8 +826,8 @@
                     <a href="#" class="btn btn-primary" onclick="showLogin()">
                         <span>🚀</span> Launch CMS Portal
                     </a>
-                    <a href="https://github.com/Mandar-Manipal/Content-projects" class="btn btn-secondary" target="_blank">
-                        <span>📁</span> View Repository
+                    <a href="#" class="btn btn-secondary" onclick="showContact()">
+                        <span>📞</span> Contact Support
                     </a>
                 </div>
             </div>
@@ -827,33 +870,10 @@
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🔗</div>
-                    <div class="feature-title">Repository Integration</div>
+                    <div class="feature-title">Integrated Workflow</div>
                     <div class="feature-description">
-                        Direct integration with GitHub repository for seamless project management.
+                        Seamless integration across all departments for efficient project management.
                     </div>
-                </div>
-            </div>
-
-            <div class="quick-access">
-                <div class="access-card" onclick="loginAs('hod')">
-                    <div class="access-icon">👨‍💼</div>
-                    <div class="access-title">HOD Portal</div>
-                    <div class="access-description">Submit and track content requests</div>
-                </div>
-                <div class="access-card" onclick="loginAs('hop')">
-                    <div class="access-icon">✅</div>
-                    <div class="access-title">HOP Portal</div>
-                    <div class="access-description">Review and approve requests</div>
-                </div>
-                <div class="access-card" onclick="loginAs('content')">
-                    <div class="access-icon">📊</div>
-                    <div class="access-title">Content FPR</div>
-                    <div class="access-description">Process and manage content</div>
-                </div>
-                <div class="access-card" onclick="window.open('https://github.com/Mandar-Manipal/Content-projects', '_blank')">
-                    <div class="access-icon">📁</div>
-                    <div class="access-title">Repository</div>
-                    <div class="access-description">Access project files and resources</div>
                 </div>
             </div>
         </div>
@@ -885,13 +905,6 @@
 
                 <div class="error-message" id="errorMessage"></div>
                 <div class="success-message" id="successMessage"></div>
-
-                <div style="margin-top: 30px; padding-top: 30px; border-top: 1px solid #e2e8f0; font-size: 14px; color: #666;">
-                    <strong>Demo Credentials:</strong><br>
-                    HOD: AxisBank_HOD / AxisBank@123<br>
-                    HOP: AxisBank_HOP / AxisBank@123<br>
-                    Content: Content_FPR / Content@123
-                </div>
             </div>
         </div>
     </div>
@@ -1193,8 +1206,8 @@
                         <button class="btn btn-warning" onclick="emailMonthlyReport()">
                             📧 Email Monthly Report
                         </button>
-                        <button class="btn btn-success" onclick="openRepository()">
-                            🔗 Access Repository
+                        <button class="btn btn-success" onclick="openContactManager()">
+                            🔗 Manage Contacts
                         </button>
                     </div>
                 </div>
@@ -1259,7 +1272,104 @@
         </div>
     </div>
 
-    <!-- Footer -->
+    <!-- Contact Management Section -->
+    <div class="app-section" id="contactSection">
+        <div class="container">
+            <div class="form-section">
+                <div class="section-title">
+                    <span>📞</span>
+                    <span>Contact Information</span>
+                </div>
+                
+                <div class="contact-list" id="contactList">
+                    <div class="contact-item">
+                        <div class="contact-info">
+                            <div class="contact-name">Freena Lobo</div>
+                            <div class="contact-phone">+91 9916422513</div>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-info">
+                            <div class="contact-name">Sharath Srinivasa</div>
+                            <div class="contact-phone">+91 9738411754</div>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-info">
+                            <div class="contact-name">Mandar Deshpande</div>
+                            <div class="contact-phone">+91 9826064826</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; text-align: center;">
+                    <button class="btn btn-primary" onclick="showLanding()">
+                        ← Back to Home
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Manager Section (Content FPR Only) -->
+    <div class="app-section" id="contactManagerSection">
+        <div class="container">
+            <div class="header">
+                <div class="header-left">
+                    <h1>📞 Contact Manager</h1>
+                    <div class="user-info">Manage contact information</div>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-danger" onclick="closeContactManager()">
+                        ✕ Close
+                    </button>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="form-section">
+                    <div class="section-title">
+                        <span>➕</span>
+                        <span>Add New Contact</span>
+                    </div>
+
+                    <form id="contactForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="contactName">Full Name <span class="required">*</span></label>
+                                <input type="text" id="contactName" name="name" required placeholder="Enter full name">
+                            </div>
+                            <div class="form-group">
+                                <label for="contactPhone">Phone Number <span class="required">*</span></label>
+                                <input type="tel" id="contactPhone" name="phone" required placeholder="+91 XXXXXXXXXX">
+                            </div>
+                        </div>
+                        
+                        <div class="button-group">
+                            <button type="submit" class="btn btn-primary">
+                                ➕ Add Contact
+                            </button>
+                            <button type="button" class="btn btn-warning" onclick="clearContactForm()">
+                                🗑️ Clear Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="sidebar">
+                    <div class="sidebar-section">
+                        <div class="section-title">
+                            <span>📋</span>
+                            <span>Current Contacts</span>
+                        </div>
+                        <div id="manageableContactList">
+                            <!-- Contacts will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <footer class="main-footer">
         <div class="footer-container">
             <div class="footer-section">
@@ -1273,14 +1383,14 @@
                 <h3>Quick Links</h3>
                 <a href="#" onclick="showLanding()">Home</a>
                 <a href="#" onclick="showLogin()">CMS Portal</a>
-                <a href="https://github.com/Mandar-Manipal/Content-projects" target="_blank">Repository</a>
                 <a href="#" onclick="showDocumentation()">Documentation</a>
+                <a href="#" onclick="showContact()">Contact</a>
             </div>
             <div class="footer-section">
                 <h3>User Portals</h3>
-                <a href="#" onclick="loginAs('hod')">HOD Console</a>
-                <a href="#" onclick="loginAs('hop')">HOP Approval</a>
-                <a href="#" onclick="loginAs('content')">Content FPR</a>
+                <a href="#" onclick="showLogin()">HOD Console</a>
+                <a href="#" onclick="showLogin()">HOP Approval</a>
+                <a href="#" onclick="showLogin()">Content FPR</a>
                 <a href="#" onclick="showSupport()">Support</a>
             </div>
             <div class="footer-section">
@@ -1331,6 +1441,7 @@
         let requestCounter = 1;
         let uploadedFiles = [];
         let allRequests = JSON.parse(localStorage.getItem('cms_requests') || '[]');
+        let contactList = JSON.parse(localStorage.getItem('cms_contacts') || '[{"name":"Freena Lobo","phone":"+91 9916422513"},{"name":"Sharath Srinivasa","phone":"+91 9738411754"},{"name":"Mandar Deshpande","phone":"+91 9826064826"}]');
 
         // Department configuration
         const departments = {
@@ -1366,7 +1477,11 @@
         }
 
         function showContact() {
-            alert('Contact information and support details would be displayed here.');
+            hideAllSections();
+            document.getElementById('contactSection').classList.add('active');
+            updateNavigation('contact');
+            showBreadcrumb('Contact Information');
+            loadContactList();
         }
 
         function showHelp() {
@@ -1406,27 +1521,8 @@
             navLinks.classList.toggle('active');
         }
 
-        // Quick login functions
-        function loginAs(userType) {
-            showLogin();
-            const usernameField = document.getElementById('username');
-            const passwordField = document.getElementById('password');
-            
-            switch(userType) {
-                case 'hod':
-                    usernameField.value = 'AxisBank_HOD';
-                    passwordField.value = 'AxisBank@123';
-                    break;
-                case 'hop':
-                    usernameField.value = 'AxisBank_HOP';
-                    passwordField.value = 'AxisBank@123';
-                    break;
-                case 'content':
-                    usernameField.value = 'Content_FPR';
-                    passwordField.value = 'Content@123';
-                    break;
-            }
-        }
+        // Quick login functions - removed for security
+        // All direct access functions removed
 
         // Utility functions
         function showMessage(message, isError = false) {
@@ -1924,8 +2020,7 @@ card">
         }
 
         function sendEmailNotificationWithLink(request, action) {
-            const repositoryLink = 'https://github.com/Mandar-Manipal/Content-projects';
-            const subject = `CMS Request ${request.requestId} - Approved with Repository Access`;
+            const subject = `CMS Request ${request.requestId} - Approved`;
             const body = `Dear Content FPR Team,
 
 Request ID: ${request.requestId}
@@ -1934,10 +2029,6 @@ Department: ${departments[request.department].name}
 Status: Approved
 
 The request has been approved by HOP and is now ready for content processing.
-
-Repository Access: ${repositoryLink}
-
-You can access all project files and documentation through the repository link above.
 
 Best regards,
 CMS System`;
@@ -2037,8 +2128,97 @@ CMS System`;
             window.open(mailtoLink);
         }
 
-        function openRepository() {
-            window.open('https://github.com/Mandar-Manipal/Content-projects', '_blank');
+        function openContactManager() {
+            if (currentUser && currentUser.role === 'content-fpr') {
+                hideAllSections();
+                document.getElementById('contactManagerSection').classList.add('active');
+                showBreadcrumb('Contact Manager');
+                loadManageableContacts();
+            } else {
+                alert('Access denied. Only Content FPR can manage contacts.');
+            }
+        }
+
+        function closeContactManager() {
+            showSection('contentSection');
+            showBreadcrumb('Content FPR Console');
+        }
+
+        function loadContactList() {
+            const contactListDiv = document.getElementById('contactList');
+            contactListDiv.innerHTML = contactList.map(contact => `
+                <div class="contact-item">
+                    <div class="contact-info">
+                        <div class="contact-name">${contact.name}</div>
+                        <div class="contact-phone">${contact.phone}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadManageableContacts() {
+            const manageableContactListDiv = document.getElementById('manageableContactList');
+            manageableContactListDiv.innerHTML = contactList.map((contact, index) => `
+                <div class="contact-item">
+                    <div class="contact-info">
+                        <div class="contact-name">${contact.name}</div>
+                        <div class="contact-phone">${contact.phone}</div>
+                    </div>
+                    <div class="contact-actions">
+                        <button class="btn btn-warning btn-small" onclick="editContact(${index})">Edit</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteContact(${index})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Contact form handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const contactForm = document.getElementById('contactForm');
+            if (contactForm) {
+                contactForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(e.target);
+                    const newContact = {
+                        name: formData.get('name'),
+                        phone: formData.get('phone')
+                    };
+                    
+                    contactList.push(newContact);
+                    localStorage.setItem('cms_contacts', JSON.stringify(contactList));
+                    
+                    alert('Contact added successfully!');
+                    clearContactForm();
+                    loadManageableContacts();
+                });
+            }
+        });
+
+        function clearContactForm() {
+            document.getElementById('contactForm').reset();
+        }
+
+        function editContact(index) {
+            const contact = contactList[index];
+            const newName = prompt('Enter new name:', contact.name);
+            const newPhone = prompt('Enter new phone:', contact.phone);
+            
+            if (newName && newPhone) {
+                contactList[index] = { name: newName, phone: newPhone };
+                localStorage.setItem('cms_contacts', JSON.stringify(contactList));
+                loadManageableContacts();
+                alert('Contact updated successfully!');
+            }
+        }
+
+        function deleteContact(index) {
+            if (confirm('Are you sure you want to delete this contact?')) {
+                contactList.splice(index, 1);
+                localStorage.setItem('cms_contacts', JSON.stringify(contactList));
+                loadManageableContacts();
+                alert('Contact deleted successfully!');
+            }
         }
 
         // Quick action functions
