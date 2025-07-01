@@ -1209,6 +1209,9 @@
                         <button class="btn btn-success" onclick="openContactManager()">
                             🔗 Manage Contacts
                         </button>
+                        <button class="btn btn-warning" onclick="createTestRequest()">
+                            🧪 Create Test Request
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1977,7 +1980,20 @@ card">
             const requestQueue = document.getElementById('contentRequestQueue');
             
             if (approvedRequests.length === 0) {
-                requestQueue.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No pending requests for processing</div>';
+                requestQueue.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">📭</div>
+                        <div style="font-size: 18px; margin-bottom: 15px;">No approved requests found</div>
+                        <div style="font-size: 14px; color: #999; margin-bottom: 20px;">
+                            Total requests in system: ${allRequests.length}<br>
+                            Pending: ${allRequests.filter(r => r.status === 'pending').length} | 
+                            Approved: ${allRequests.filter(r => r.status === 'approved').length} | 
+                            Completed: ${allRequests.filter(r => r.status === 'completed').length}
+                        </div>
+                        <button class="btn btn-primary" onclick="refreshContentData()">🔄 Refresh Data</button>
+                        <button class="btn btn-warning" onclick="showAllRequests()">👁️ Show All Requests</button>
+                    </div>
+                `;
                 return;
             }
 
@@ -1991,10 +2007,10 @@ card">
                     </div>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div><strong>Department:</strong> ${departments[req.department].name}</div>
+                        <div><strong>Department:</strong> ${departments[req.department] ? departments[req.department].name : req.department}</div>
                         <div><strong>Type:</strong> ${req.requestType}</div>
                         <div><strong>Deadline:</strong> ${new Date(req.deadline).toLocaleDateString()}</div>
-                        <div><strong>Approved:</strong> ${new Date(req.approvedDate).toLocaleDateString()}</div>
+                        <div><strong>Approved:</strong> ${req.approvedDate ? new Date(req.approvedDate).toLocaleDateString() : 'Recently'}</div>
                     </div>
 
                     <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #48bb78;">
@@ -2252,6 +2268,107 @@ CMS System`;
                 loadManageableContacts();
                 alert('Contact deleted successfully!');
             }
+        }
+
+        // Debug and recovery functions
+        function refreshContentData() {
+            // Force reload data from localStorage
+            allRequests = JSON.parse(localStorage.getItem('cms_requests') || '[]');
+            loadContentStats();
+            loadContentRequests();
+            alert('Data refreshed successfully!');
+        }
+
+        function showAllRequests() {
+            const requestQueue = document.getElementById('contentRequestQueue');
+            
+            if (allRequests.length === 0) {
+                requestQueue.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">No requests found in the system</div>';
+                return;
+            }
+
+            const groupedRequests = {
+                pending: allRequests.filter(req => req.status === 'pending'),
+                approved: allRequests.filter(req => req.status === 'approved'),
+                completed: allRequests.filter(req => req.status === 'completed'),
+                rejected: allRequests.filter(req => req.status === 'rejected')
+            };
+
+            let html = '<div style="margin-bottom: 20px;"><h3>🔍 All Requests Debug View</h3></div>';
+            
+            Object.keys(groupedRequests).forEach(status => {
+                const requests = groupedRequests[status];
+                if (requests.length > 0) {
+                    html += `
+                        <div style="margin-bottom: 30px;">
+                            <h4 style="color: #2d3748; margin-bottom: 15px; text-transform: capitalize;">
+                                ${status} Requests (${requests.length})
+                            </h4>
+                            ${requests.map(req => `
+                                <div class="request-card" style="margin-bottom: 10px;">
+                                    <div class="request-header">
+                                        <span class="request-id">${req.requestId}</span>
+                                        <span class="status-badge status-${req.status}">${req.status}</span>
+                                    </div>
+                                    <div style="font-size: 14px; color: #666;">
+                                        <strong>Department:</strong> ${departments[req.department] ? departments[req.department].name : req.department}<br>
+                                        <strong>Title:</strong> ${req.title}<br>
+                                        <strong>Submitted:</strong> ${new Date(req.submittedDate).toLocaleDateString()}
+                                        ${req.approvedDate ? `<br><strong>Approved:</strong> ${new Date(req.approvedDate).toLocaleDateString()}` : ''}
+                                    </div>
+                                    ${status === 'approved' ? `
+                                        <div style="margin-top: 10px;">
+                                            <button class="btn btn-success btn-small" onclick="markRequestCompleted('${req.requestId}')">Mark Completed</button>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            });
+
+            html += `
+                <div style="margin-top: 30px; text-align: center;">
+                    <button class="btn btn-primary" onclick="loadContentRequests()">← Back to Normal View</button>
+                </div>
+            `;
+
+            requestQueue.innerHTML = html;
+        }
+
+        // Add manual request creation for debugging
+        function createTestRequest() {
+            const testRequest = {
+                requestId: 'IDFC-2025-0001',
+                department: 'idfc-first-bank',
+                programType: 'long-term',
+                requestType: 'new-content-request',
+                priority: 'medium',
+                deadline: '2025-02-15',
+                title: 'Content For long Term Program',
+                description: 'Test request for IDFC First Bank long-term program content',
+                notes: 'This is a test request created for debugging',
+                submittedBy: 'IDFCFirstBank_HOD',
+                submittedDate: new Date().toISOString(),
+                status: 'approved',
+                approvedDate: new Date().toISOString(),
+                approvedBy: 'IDFCFirstBank_HOP',
+                files: []
+            };
+
+            // Check if request already exists
+            const existingIndex = allRequests.findIndex(req => req.requestId === testRequest.requestId);
+            if (existingIndex !== -1) {
+                allRequests[existingIndex] = testRequest;
+            } else {
+                allRequests.push(testRequest);
+            }
+
+            localStorage.setItem('cms_requests', JSON.stringify(allRequests));
+            loadContentStats();
+            loadContentRequests();
+            alert('Test request IDFC-2025-0001 created/updated successfully!');
         }
 
         // Quick action functions
