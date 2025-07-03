@@ -760,7 +760,13 @@
             allRequests.push(request);
             localStorage.setItem('cms_requests', JSON.stringify(allRequests));
             
-            alert('Request submitted successfully! HOP will be notified for approval.');
+            // Send email notification to HOP
+            sendEmailNotification(request, 'submitted');
+            
+            // Show success message with email notification
+            showSuccessMessage('Request Submitted Successfully!', 
+                `✅ Request ${requestId} submitted and email notification sent to HOP team for approval.`);
+            
             clearHodForm();
             loadHodStats();
             loadHodRequests();
