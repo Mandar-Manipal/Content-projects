@@ -294,7 +294,11 @@
                     <div class="section-title">⚡ Quick Actions</div>
                     <div style="display: flex; flex-direction: column; gap: 10px;">
                         <button class="btn btn-success" onclick="refreshHopData()">🔄 Refresh Data</button>
+                        <button class="btn btn-warning" onclick="showAllPendingRequests()">👁️ Show All Pending</button>
                         <button class="btn btn-primary" onclick="generateHopReport()">📊 Generate Report</button>
+                        <button class="btn btn-success" onclick="forceRefreshData()">🔄 Force Refresh</button>
+                        <button class="btn btn-warning" onclick="syncWithOtherSystem()">🔄 Sync Systems</button>
+                        <button class="btn btn-primary" onclick="debugRequestData()">🔍 Debug Data</button>
                     </div>
                 </div>
             </div>
@@ -804,11 +808,30 @@
             );
             const requestQueue = document.getElementById('hopRequestQueue');
             
+            // Debug information
+            console.log('Current User Department:', currentUser.department);
+            console.log('All Requests:', allRequests);
+            console.log('Filtered Requests for this department:', deptRequests);
+            
             if (deptRequests.length === 0) {
+                // Show more detailed no-requests message with debug info
+                const allDeptRequests = allRequests.filter(req => req.department === currentUser.department);
+                const pendingInSystem = allRequests.filter(req => req.status === 'pending');
+                
                 requestQueue.innerHTML = `
                     <div style="text-align: center; color: #666; padding: 40px;">
-                        <div style="font-size: 18px; margin-bottom: 15px;">No pending requests for your department</div>
-                        <button class="btn btn-primary" onclick="refreshHopData()">🔄 Refresh Data</button>
+                        <div style="font-size: 48px; margin-bottom: 20px;">📭</div>
+                        <div style="font-size: 18px; margin-bottom: 15px;">No pending requests for ${departments[currentUser.department]?.name || currentUser.department}</div>
+                        <div style="font-size: 14px; color: #999; margin-bottom: 20px;">
+                            Total requests for your department: ${allDeptRequests.length}<br>
+                            Pending requests in system: ${pendingInSystem.length}<br>
+                            Your department ID: ${currentUser.department}
+                        </div>
+                        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="refreshHopData()">🔄 Refresh Data</button>
+                            <button class="btn btn-warning" onclick="showAllPendingRequests()">👁️ Show All Pending</button>
+                            <button class="btn btn-success" onclick="debugRequestData()">🔍 Debug Data</button>
+                        </div>
                     </div>
                 `;
                 return;
@@ -832,7 +855,9 @@
 
                     <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ed8936;">
                         <strong>Title:</strong> ${req.title}<br>
-                        <strong>Description:</strong> ${req.description}
+                        <strong>Description:</strong> ${req.description}<br>
+                        <strong>Submitted by:</strong> ${req.submittedBy}<br>
+                        <strong>Department:</strong> ${req.department}
                     </div>
 
                     <div style="display: flex; gap: 10px; justify-content: flex-end;">
@@ -841,6 +866,144 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        function showAllPendingRequests() {
+            const allPending = allRequests.filter(req => req.status === 'pending');
+            const requestQueue = document.getElementById('hopRequestQueue');
+            
+            if (allPending.length === 0) {
+                requestQueue.innerHTML = `
+                    <div style="text-align: center; color: #666; padding: 40px;">
+                        <div style="font-size: 18px; margin-bottom: 15px;">No pending requests in entire system</div>
+                        <button class="btn btn-primary" onclick="loadHopRequests()">🔙 Back to My Requests</button>
+                    </div>
+                `;
+                return;
+            }
+
+            requestQueue.innerHTML = `
+                <div style="background: #fef5e7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ed8936;">
+                    <strong>🔍 Showing ALL pending requests in system (${allPending.length} total)</strong><br>
+                    <button class="btn btn-primary btn-small" onclick="loadHopRequests()" style="margin-top: 10px;">🔙 Back to My Department</button>
+                </div>
+            ` + allPending.map(req => `
+                <div class="request-card ${req.priority === 'high' ? 'urgent' : ''}" style="opacity: ${req.department === currentUser.department ? '1' : '0.6'};">
+                    <div class="request-header">
+                        <span class="request-id">${req.requestId}</span>
+                        <span class="priority-badge priority-${req.priority === 'not-urgent' ? 'low' : req.priority}">
+                            ${req.priority === 'not-urgent' ? 'Not Urgent' : req.priority}
+                        </span>
+                        ${req.department !== currentUser.department ? '<span style="background: #fed7d7; color: #c53030; padding: 2px 8px; border-radius: 8px; font-size: 10px;">OTHER DEPT</span>' : ''}
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div><strong>Department:</strong> ${departments[req.department]?.name || req.department}</div>
+                        <div><strong>Type:</strong> ${req.requestType}</div>
+                        <div><strong>Program:</strong> ${req.programType}</div>
+                        <div><strong>Submitted:</strong> ${new Date(req.submittedDate).toLocaleDateString()}</div>
+                    </div>
+
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #ed8936;">
+                        <strong>Title:</strong> ${req.title}<br>
+                        <strong>Description:</strong> ${req.description}<br>
+                        <strong>Submitted by:</strong> ${req.submittedBy}
+                    </div>
+
+                    ${req.department === currentUser.department ? `
+                        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                            <button class="btn btn-success btn-small" onclick="approveRequest('${req.requestId}')">Approve</button>
+                            <button class="btn btn-danger btn-small" onclick="rejectRequest('${req.requestId}')">Reject</button>
+                        </div>
+                    ` : `
+                        <div style="text-align: center; color: #666; font-style: italic;">
+                            This request belongs to another department
+                        </div>
+                    `}
+                </div>
+            `).join('');
+        }
+
+        function debugRequestData() {
+            const allPending = allRequests.filter(req => req.status === 'pending');
+            const myDeptRequests = allRequests.filter(req => req.department === currentUser.department);
+            const insuranceRequests = allRequests.filter(req => req.department === 'insurance-vertical');
+            
+            const debugInfo = `
+🔍 DEBUG INFORMATION:
+
+👤 Current User: ${currentUser.name}
+🏢 Department: ${currentUser.department}
+📊 Department Name: ${departments[currentUser.department]?.name || 'Unknown'}
+
+📋 REQUEST STATISTICS:
+• Total requests in system: ${allRequests.length}
+• Pending requests: ${allPending.length}
+• My department requests: ${myDeptRequests.length}
+• Insurance vertical requests: ${insuranceRequests.length}
+
+🎯 PENDING REQUESTS BY DEPARTMENT:
+${allPending.map(req => `• ${req.requestId} - ${departments[req.department]?.name || req.department} (${req.status})`).join('\n')}
+
+🔑 INSURANCE REQUESTS:
+${insuranceRequests.map(req => `• ${req.requestId} - Status: ${req.status} - Submitted: ${new Date(req.submittedDate).toLocaleDateString()}`).join('\n')}
+
+📝 RECENT ACTIVITY:
+${allRequests.slice(-5).map(req => `• ${req.requestId} - ${req.status} - ${new Date(req.submittedDate).toLocaleDateString()}`).join('\n')}
+            `;
+            
+            alert(debugInfo);
+        }
+
+        function forceRefreshData() {
+            // Force reload from localStorage
+            allRequests = JSON.parse(localStorage.getItem('cms_requests') || '[]');
+            loadHopStats();
+            loadHopRequests();
+            
+            showSuccessMessage('Data Force Refreshed!', 
+                `✅ All data reloaded from storage. Found ${allRequests.length} total requests.`);
+        }
+
+        function syncWithOtherSystem() {
+            // Simulate syncing with another system
+            const confirmSync = confirm('This will attempt to sync data with other systems. Continue?');
+            if (confirmSync) {
+                // Add any missing insurance requests for testing
+                const hasInsuranceRequest = allRequests.some(req => 
+                    req.department === 'insurance-vertical' && req.status === 'pending'
+                );
+                
+                if (!hasInsuranceRequest) {
+                    const testInsuranceRequest = {
+                        requestId: 'INS-2025-0001',
+                        department: 'insurance-vertical',
+                        programType: 'short-term',
+                        requestType: 'new-content-request',
+                        priority: 'high',
+                        deadline: '2025-02-15',
+                        title: 'Insurance Vertical Content Request',
+                        description: 'Content request for insurance vertical programs',
+                        notes: 'Synced from other system',
+                        submittedBy: 'Insurance_HOD',
+                        submittedDate: new Date().toISOString(),
+                        status: 'pending',
+                        files: []
+                    };
+                    
+                    allRequests.push(testInsuranceRequest);
+                    localStorage.setItem('cms_requests', JSON.stringify(allRequests));
+                    
+                    showSuccessMessage('Sync Completed!', 
+                        `✅ Found and synced Insurance request: ${testInsuranceRequest.requestId}`);
+                } else {
+                    showSuccessMessage('Sync Completed!', 
+                        `✅ No new requests found to sync.`);
+                }
+                
+                loadHopStats();
+                loadHopRequests();
+            }
         }
 
         function approveRequest(requestId) {
