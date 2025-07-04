@@ -978,79 +978,133 @@ Current situation:
 • Your department: ${currentUser.department}
 
 This will:
-1. Clear any corrupted Insurance data
-2. Create a fresh Insurance test request
-3. Force refresh your dashboard
+1. Search for lost/missing Insurance requests
+2. Clear any corrupted Insurance data
+3. Create a fresh Insurance test request
+4. Force refresh your dashboard
 
 Continue with emergency fix?`);
 
             if (confirmFix) {
+                // Search for potentially lost requests
+                const allStorageKeys = Object.keys(localStorage);
+                const foundLostRequests = [];
+                
+                // Check for backup data or lost requests
+                allStorageKeys.forEach(key => {
+                    if (key.includes('cms') || key.includes('insurance') || key.includes('request')) {
+                        try {
+                            const data = JSON.parse(localStorage.getItem(key));
+                            if (Array.isArray(data)) {
+                                data.forEach(item => {
+                                    if (item.department === 'insurance-vertical' || item.submittedBy?.includes('Insurance')) {
+                                        foundLostRequests.push(item);
+                                    }
+                                });
+                            }
+                        } catch (e) {
+                            // Skip invalid JSON
+                        }
+                    }
+                });
+                
                 // Remove any existing Insurance requests
                 const cleanedRequests = allRequests.filter(req => req.department !== 'insurance-vertical');
                 
-                // Add a fresh Insurance request
-                const emergencyRequest = {
-                    requestId: `INS-2025-EMERGENCY-${Date.now().toString().slice(-4)}`,
-                    department: 'insurance-vertical',
-                    programType: 'short-term',
-                    requestType: 'new-content-request',
-                    priority: 'high',
-                    deadline: '2025-02-15',
-                    title: 'EMERGENCY FIX - Insurance Content Request',
-                    description: 'Emergency fix request to test Insurance vertical workflow. This request was created to resolve system routing issues.',
-                    notes: 'EMERGENCY FIX: Created to resolve request routing issue between Insurance HOD and HOP',
-                    submittedBy: 'Insurance_HOD',
-                    submittedDate: new Date().toISOString(),
-                    status: 'pending',
-                    files: []
-                };
+                // Add back any found lost requests
+                foundLostRequests.forEach(req => {
+                    if (!cleanedRequests.find(existing => existing.requestId === req.requestId)) {
+                        cleanedRequests.push(req);
+                    }
+                });
                 
-                cleanedRequests.push(emergencyRequest);
+                // Add a fresh Insurance request if none found
+                if (foundLostRequests.length === 0) {
+                    const emergencyRequest = {
+                        requestId: `INS-2025-EMERGENCY-${Date.now().toString().slice(-4)}`,
+                        department: 'insurance-vertical',
+                        programType: 'short-term',
+                        requestType: 'new-content-request',
+                        priority: 'high',
+                        deadline: '2025-02-15',
+                        title: 'EMERGENCY FIX - Insurance Content Request',
+                        description: 'Emergency fix request to test Insurance vertical workflow. This request was created to resolve system routing issues.',
+                        notes: 'EMERGENCY FIX: Created to resolve request routing issue between Insurance HOD and HOP',
+                        submittedBy: 'Insurance_HOD',
+                        submittedDate: new Date().toISOString(),
+                        status: 'pending',
+                        files: []
+                    };
+                    cleanedRequests.push(emergencyRequest);
+                }
+                
                 allRequests = cleanedRequests;
                 localStorage.setItem('cms_requests', JSON.stringify(allRequests));
                 
+                // Create backup
+                localStorage.setItem('cms_requests_backup', JSON.stringify(allRequests));
+                
                 // Force refresh all data
-                loadHopStats();
-                loadHopRequests();
+                if (currentUser.role === 'hod') {
+                    loadHodStats();
+                    loadHodRequests();
+                } else if (currentUser.role === 'hop') {
+                    loadHopStats();
+                    loadHopRequests();
+                }
                 
                 // Show detailed success message
-                const popup = document.createElement('div');
-                popup.style.cssText = `
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: white;
-                    padding: 30px;
-                    border-radius: 15px;
-                    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-                    z-index: 10001;
-                    max-width: 600px;
-                    text-align: center;
-                    font-family: 'Segoe UI', sans-serif;
-                `;
-                
-                popup.innerHTML = `
-                    <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
-                    <div style="font-size: 24px; font-weight: bold; color: #2d3748; margin-bottom: 15px;">Emergency Fix Applied Successfully!</div>
-                    <div style="font-size: 16px; color: #666; margin-bottom: 25px; text-align: left;">
-                        <strong>✅ Actions Completed:</strong><br>
-                        • Cleaned corrupted Insurance data<br>
-                        • Created fresh request: ${emergencyRequest.requestId}<br>
-                        • Updated localStorage<br>
-                        • Refreshed dashboard<br><br>
-                        
-                        <strong>📋 Test Request Details:</strong><br>
-                        • ID: ${emergencyRequest.requestId}<br>
-                        • Department: Insurance Vertical<br>
-                        • Status: Pending (ready for HOP approval)<br>
-                        • Priority: High<br><br>
-                        
-                        <strong>🎯 Next Steps:</strong><br>
-                        1. Check HOP dashboard for the new request<br>
-                        2. Test approval workflow<br>
-                        3. Verify Content FPR receives approved requests
-                    </div>
+                showRecoveryResults(foundLostRequests);
+            }
+        }
+
+        function showRecoveryResults(foundRequests) {
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+                z-index: 10001;
+                max-width: 700px;
+                max-height: 80vh;
+                overflow-y: auto;
+                text-align: center;
+                font-family: 'Segoe UI', sans-serif;
+            `;
+            
+            const recoveryMessage = foundRequests.length > 0 
+                ? `Found and recovered ${foundRequests.length} lost Insurance request(s)!`
+                : 'No lost requests found. Created new emergency request.';
+            
+            popup.innerHTML = `
+                <div style="font-size: 48px; margin-bottom: 20px;">🔍</div>
+                <div style="font-size: 24px; font-weight: bold; color: #2d3748; margin-bottom: 15px;">Request Recovery Complete!</div>
+                <div style="font-size: 16px; color: #666; margin-bottom: 25px; text-align: left;">
+                    <strong>🔍 Recovery Results:</strong><br>
+                    ${recoveryMessage}<br><br>
+                    
+                    ${foundRequests.length > 0 ? `
+                        <strong>📋 Recovered Requests:</strong><br>
+                        ${foundRequests.map(req => `• ${req.requestId} - ${req.title} (${req.status})`).join('<br>')}<br><br>
+                    ` : ''}
+                    
+                    <strong>✅ Actions Completed:</strong><br>
+                    • Searched localStorage for lost requests<br>
+                    • Recovered ${foundRequests.length} Insurance requests<br>
+                    • Created backup copy<br>
+                    • Refreshed dashboard<br><br>
+                    
+                    <strong>🎯 Next Steps:</strong><br>
+                    1. Check your dashboard for all requests<br>
+                    2. Verify request routing works properly<br>
+                    3. Test the complete workflow
+                </div>
+                <div style="display: flex; gap: 10px; justify-content: center;">
                     <button onclick="this.parentElement.remove(); location.reload();" style="
                         background: linear-gradient(135deg, #48bb78, #38a169);
                         color: white;
@@ -1060,10 +1114,171 @@ Continue with emergency fix?`);
                         font-size: 16px;
                         font-weight: 600;
                         cursor: pointer;
-                    ">Reload Page & Test</button>
-                `;
+                    ">Reload & Test</button>
+                    <button onclick="showDataRecoveryOptions(); this.parentElement.remove();" style="
+                        background: linear-gradient(135deg, #ed8936, #dd6b20);
+                        color: white;
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        font-weight: 600;
+                        cursor: pointer;
+                    ">More Recovery Options</button>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+        }
+
+        function showDataRecoveryOptions() {
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 30px;
+                border-radius: 15px;
+                box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+                z-index: 10001;
+                max-width: 600px;
+                text-align: center;
+                font-family: 'Segoe UI', sans-serif;
+            `;
+            
+            popup.innerHTML = `
+                <div style="font-size: 48px; margin-bottom: 20px;">🛠️</div>
+                <div style="font-size: 24px; font-weight: bold; color: #2d3748; margin-bottom: 15px;">Data Recovery Options</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;">
+                    <button onclick="manualRequestEntry(); this.parentElement.parentElement.remove();" style="
+                        background: linear-gradient(135deg, #667eea, #764ba2);
+                        color: white;
+                        border: none;
+                        padding: 15px;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        cursor: pointer;
+                    ">📝 Manual Request Entry</button>
+                    <button onclick="importFromBackup(); this.parentElement.parentElement.remove();" style="
+                        background: linear-gradient(135deg, #48bb78, #38a169);
+                        color: white;
+                        border: none;
+                        padding: 15px;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        cursor: pointer;
+                    ">📂 Import from Backup</button>
+                    <button onclick="recreateLostRequest(); this.parentElement.parentElement.remove();" style="
+                        background: linear-gradient(135deg, #ed8936, #dd6b20);
+                        color: white;
+                        border: none;
+                        padding: 15px;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        cursor: pointer;
+                    ">🔄 Recreate Lost Request</button>
+                    <button onclick="this.parentElement.parentElement.remove();" style="
+                        background: #e2e8f0;
+                        color: #4a5568;
+                        border: none;
+                        padding: 15px;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        cursor: pointer;
+                    ">❌ Cancel</button>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+        }
+
+        function manualRequestEntry() {
+            const requestId = prompt('Enter the Request ID of the lost request:');
+            if (!requestId) return;
+            
+            const title = prompt('Enter the request title:');
+            if (!title) return;
+            
+            const description = prompt('Enter the request description:');
+            if (!description) return;
+            
+            const priority = prompt('Enter priority (high/medium/not-urgent):', 'high');
+            const status = prompt('Enter current status (pending/approved/completed):', 'pending');
+            
+            const recoveredRequest = {
+                requestId: requestId,
+                department: 'insurance-vertical',
+                programType: 'long-term',
+                requestType: 'new-content-request',
+                priority: priority || 'high',
+                deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+                title: title,
+                description: description,
+                notes: 'Manually recovered lost request',
+                submittedBy: 'Insurance_HOD',
+                submittedDate: new Date().toISOString(),
+                status: status || 'pending',
+                files: []
+            };
+            
+            allRequests.push(recoveredRequest);
+            localStorage.setItem('cms_requests', JSON.stringify(allRequests));
+            
+            if (currentUser.role === 'hod') {
+                loadHodStats();
+                loadHodRequests();
+            } else if (currentUser.role === 'hop') {
+                loadHopStats();
+                loadHopRequests();
+            }
+            
+            showSuccessMessage('Request Recovered!', 
+                `✅ Manually recovered request: ${requestId}`);
+        }
+
+        function recreateLostRequest() {
+            const confirmRecreate = confirm(`This will recreate a typical Insurance request that might have been lost.
+
+The recreated request will have:
+• Request ID: INS-2025-RECOVERED
+• Title: Insurance Vertical Content Request (Recreated)
+• Status: Pending
+• High Priority
+
+Continue?`);
+            
+            if (confirmRecreate) {
+                const recreatedRequest = {
+                    requestId: `INS-2025-RECOVERED-${Date.now().toString().slice(-4)}`,
+                    department: 'insurance-vertical',
+                    programType: 'long-term',
+                    requestType: 'new-content-request',
+                    priority: 'high',
+                    deadline: '2025-02-20',
+                    title: 'Insurance Vertical Content Request (Recreated)',
+                    description: 'This is a recreated Insurance vertical content request to replace a lost/missing request. Please review and process as needed.',
+                    notes: 'RECREATED: This request was recreated to replace a lost request from the Insurance vertical',
+                    submittedBy: 'Insurance_HOD',
+                    submittedDate: new Date().toISOString(),
+                    status: 'pending',
+                    files: []
+                };
                 
-                document.body.appendChild(popup);
+                allRequests.push(recreatedRequest);
+                localStorage.setItem('cms_requests', JSON.stringify(allRequests));
+                
+                if (currentUser.role === 'hod') {
+                    loadHodStats();
+                    loadHodRequests();
+                } else if (currentUser.role === 'hop') {
+                    loadHopStats();
+                    loadHopRequests();
+                }
+                
+                showSuccessMessage('Request Recreated!', 
+                    `✅ Recreated lost request: ${recreatedRequest.requestId}`);
             }
         }
 
