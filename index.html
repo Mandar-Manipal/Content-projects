@@ -300,6 +300,7 @@
                         <button class="btn btn-warning" onclick="syncWithOtherSystem()">🔄 Sync Systems</button>
                         <button class="btn btn-primary" onclick="debugRequestData()">🔍 Debug Data</button>
                         <button class="btn btn-danger" onclick="emergencyInsuranceFix()" style="background: linear-gradient(135deg, #e53e3e, #c53030);">🆘 Fix Insurance Issue</button>
+                        <button class="btn btn-warning" onclick="forceCloseAllPopups()" style="background: linear-gradient(135deg, #f56565, #e53e3e);">❌ Close All Popups</button>
                     </div>
                 </div>
             </div>
@@ -1060,20 +1061,18 @@ Continue with emergency fix?`);
 
         function showRecoveryResults(foundRequests) {
             const popup = document.createElement('div');
+            popup.id = 'recoveryResultsPopup';
             popup.style.cssText = `
                 position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background: white;
-                padding: 30px;
-                border-radius: 15px;
-                box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.5);
                 z-index: 10001;
-                max-width: 700px;
-                max-height: 80vh;
-                overflow-y: auto;
-                text-align: center;
+                display: flex;
+                justify-content: center;
+                align-items: center;
                 font-family: 'Segoe UI', sans-serif;
             `;
             
@@ -1082,53 +1081,167 @@ Continue with emergency fix?`);
                 : 'No lost requests found. Created new emergency request.';
             
             popup.innerHTML = `
-                <div style="font-size: 48px; margin-bottom: 20px;">🔍</div>
-                <div style="font-size: 24px; font-weight: bold; color: #2d3748; margin-bottom: 15px;">Request Recovery Complete!</div>
-                <div style="font-size: 16px; color: #666; margin-bottom: 25px; text-align: left;">
-                    <strong>🔍 Recovery Results:</strong><br>
-                    ${recoveryMessage}<br><br>
-                    
-                    ${foundRequests.length > 0 ? `
-                        <strong>📋 Recovered Requests:</strong><br>
-                        ${foundRequests.map(req => `• ${req.requestId} - ${req.title} (${req.status})`).join('<br>')}<br><br>
-                    ` : ''}
-                    
-                    <strong>✅ Actions Completed:</strong><br>
-                    • Searched localStorage for lost requests<br>
-                    • Recovered ${foundRequests.length} Insurance requests<br>
-                    • Created backup copy<br>
-                    • Refreshed dashboard<br><br>
-                    
-                    <strong>🎯 Next Steps:</strong><br>
-                    1. Check your dashboard for all requests<br>
-                    2. Verify request routing works properly<br>
-                    3. Test the complete workflow
-                </div>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="this.parentElement.remove(); location.reload();" style="
-                        background: linear-gradient(135deg, #48bb78, #38a169);
-                        color: white;
+                <div style="
+                    background: white;
+                    padding: 30px;
+                    border-radius: 15px;
+                    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+                    max-width: 700px;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    text-align: center;
+                    position: relative;
+                ">
+                    <button onclick="closeRecoveryPopup()" style="
+                        position: absolute;
+                        top: 15px;
+                        right: 15px;
+                        background: none;
                         border: none;
-                        padding: 12px 24px;
-                        border-radius: 8px;
-                        font-size: 16px;
-                        font-weight: 600;
+                        font-size: 24px;
                         cursor: pointer;
-                    ">Reload & Test</button>
-                    <button onclick="showDataRecoveryOptions(); this.parentElement.remove();" style="
-                        background: linear-gradient(135deg, #ed8936, #dd6b20);
-                        color: white;
-                        border: none;
-                        padding: 12px 24px;
-                        border-radius: 8px;
-                        font-size: 16px;
-                        font-weight: 600;
-                        cursor: pointer;
-                    ">More Recovery Options</button>
+                        color: #666;
+                        padding: 5px;
+                        border-radius: 50%;
+                        width: 35px;
+                        height: 35px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    " onmouseover="this.style.background='#f1f1f1'" onmouseout="this.style.background='none'">×</button>
+                    
+                    <div style="font-size: 48px; margin-bottom: 20px;">🔍</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #2d3748; margin-bottom: 15px;">Request Recovery Complete!</div>
+                    <div style="font-size: 16px; color: #666; margin-bottom: 25px; text-align: left;">
+                        <strong>🔍 Recovery Results:</strong><br>
+                        ${recoveryMessage}<br><br>
+                        
+                        ${foundRequests.length > 0 ? `
+                            <strong>📋 Recovered Requests:</strong><br>
+                            ${foundRequests.map(req => `• ${req.requestId} - ${req.title} (${req.status})`).join('<br>')}<br><br>
+                        ` : ''}
+                        
+                        <strong>✅ Actions Completed:</strong><br>
+                        • Searched localStorage for lost requests<br>
+                        • Recovered ${foundRequests.length} Insurance requests<br>
+                        • Created backup copy<br>
+                        • Refreshed dashboard<br><br>
+                        
+                        <strong>🎯 Next Steps:</strong><br>
+                        1. Close this popup to see your dashboard<br>
+                        2. Check for all requests in the main interface<br>
+                        3. Test the complete workflow
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button onclick="closeRecoveryPopup(); window.location.reload();" style="
+                            background: linear-gradient(135deg, #48bb78, #38a169);
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">✅ Close & Reload</button>
+                        <button onclick="closeRecoveryPopup();" style="
+                            background: linear-gradient(135deg, #667eea, #764ba2);
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">✅ Close Popup</button>
+                        <button onclick="showDataRecoveryOptions(); closeRecoveryPopup();" style="
+                            background: linear-gradient(135deg, #ed8936, #dd6b20);
+                            color: white;
+                            border: none;
+                            padding: 12px 24px;
+                            border-radius: 8px;
+                            font-size: 16px;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">🔧 More Options</button>
+                    </div>
                 </div>
             `;
             
+            // Remove any existing recovery popups
+            const existingPopup = document.getElementById('recoveryResultsPopup');
+            if (existingPopup) {
+                existingPopup.remove();
+            }
+            
             document.body.appendChild(popup);
+            
+            // Close popup when clicking outside
+            popup.addEventListener('click', function(e) {
+                if (e.target === popup) {
+                    closeRecoveryPopup();
+                }
+            });
+            
+            // ESC key to close popup
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeRecoveryPopup();
+                }
+            });
+        }
+
+        function closeRecoveryPopup() {
+            const popup = document.getElementById('recoveryResultsPopup');
+            if (popup) {
+                popup.remove();
+            }
+            
+            // Remove any other stuck popups
+            document.querySelectorAll('[style*="position: fixed"][style*="z-index: 1000"]').forEach(element => {
+                if (element.textContent.includes('Recovery') || element.textContent.includes('Request')) {
+                    element.remove();
+                }
+            });
+            
+            // Force refresh the current console
+            if (currentUser) {
+                if (currentUser.role === 'hod') {
+                    loadHodStats();
+                    loadHodRequests();
+                } else if (currentUser.role === 'hop') {
+                    loadHopStats();
+                    loadHopRequests();
+                } else if (currentUser.role === 'content-fpr') {
+                    loadContentStats();
+                    loadContentRequests();
+                }
+            }
+        }
+
+        // Add emergency popup close function
+        function forceCloseAllPopups() {
+            // Remove all fixed position elements that might be popups
+            document.querySelectorAll('[style*="position: fixed"]').forEach(element => {
+                if (element.style.zIndex >= 1000) {
+                    element.remove();
+                }
+            });
+            
+            // Force refresh interface
+            if (currentUser) {
+                if (currentUser.role === 'hod') {
+                    loadHodStats();
+                    loadHodRequests();
+                } else if (currentUser.role === 'hop') {
+                    loadHopStats();
+                    loadHopRequests();
+                } else if (currentUser.role === 'content-fpr') {
+                    loadContentStats();
+                    loadContentRequests();
+                }
+            }
+            
+            showSuccessMessage('Interface Cleared!', 'All popups closed and interface refreshed.');
         }
 
         function showDataRecoveryOptions() {
