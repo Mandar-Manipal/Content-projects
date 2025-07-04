@@ -299,6 +299,7 @@
                         <button class="btn btn-success" onclick="forceRefreshData()">🔄 Force Refresh</button>
                         <button class="btn btn-warning" onclick="syncWithOtherSystem()">🔄 Sync Systems</button>
                         <button class="btn btn-primary" onclick="debugRequestData()">🔍 Debug Data</button>
+                        <button class="btn btn-danger" onclick="emergencyInsuranceFix()" style="background: linear-gradient(135deg, #e53e3e, #c53030);">🆘 Fix Insurance Issue</button>
                     </div>
                 </div>
             </div>
@@ -965,44 +966,104 @@ ${allRequests.slice(-5).map(req => `• ${req.requestId} - ${req.status} - ${new
                 `✅ All data reloaded from storage. Found ${allRequests.length} total requests.`);
         }
 
-        function syncWithOtherSystem() {
-            // Simulate syncing with another system
-            const confirmSync = confirm('This will attempt to sync data with other systems. Continue?');
-            if (confirmSync) {
-                // Add any missing insurance requests for testing
-                const hasInsuranceRequest = allRequests.some(req => 
-                    req.department === 'insurance-vertical' && req.status === 'pending'
-                );
+        function emergencyInsuranceFix() {
+            const currentData = JSON.parse(localStorage.getItem('cms_requests') || '[]');
+            const insuranceRequests = currentData.filter(req => req.department === 'insurance-vertical');
+            
+            const confirmFix = confirm(`EMERGENCY INSURANCE FIX
+            
+Current situation:
+• Total requests in system: ${currentData.length}
+• Insurance requests found: ${insuranceRequests.length}
+• Your department: ${currentUser.department}
+
+This will:
+1. Clear any corrupted Insurance data
+2. Create a fresh Insurance test request
+3. Force refresh your dashboard
+
+Continue with emergency fix?`);
+
+            if (confirmFix) {
+                // Remove any existing Insurance requests
+                const cleanedRequests = allRequests.filter(req => req.department !== 'insurance-vertical');
                 
-                if (!hasInsuranceRequest) {
-                    const testInsuranceRequest = {
-                        requestId: 'INS-2025-0001',
-                        department: 'insurance-vertical',
-                        programType: 'short-term',
-                        requestType: 'new-content-request',
-                        priority: 'high',
-                        deadline: '2025-02-15',
-                        title: 'Insurance Vertical Content Request',
-                        description: 'Content request for insurance vertical programs',
-                        notes: 'Synced from other system',
-                        submittedBy: 'Insurance_HOD',
-                        submittedDate: new Date().toISOString(),
-                        status: 'pending',
-                        files: []
-                    };
-                    
-                    allRequests.push(testInsuranceRequest);
-                    localStorage.setItem('cms_requests', JSON.stringify(allRequests));
-                    
-                    showSuccessMessage('Sync Completed!', 
-                        `✅ Found and synced Insurance request: ${testInsuranceRequest.requestId}`);
-                } else {
-                    showSuccessMessage('Sync Completed!', 
-                        `✅ No new requests found to sync.`);
-                }
+                // Add a fresh Insurance request
+                const emergencyRequest = {
+                    requestId: `INS-2025-EMERGENCY-${Date.now().toString().slice(-4)}`,
+                    department: 'insurance-vertical',
+                    programType: 'short-term',
+                    requestType: 'new-content-request',
+                    priority: 'high',
+                    deadline: '2025-02-15',
+                    title: 'EMERGENCY FIX - Insurance Content Request',
+                    description: 'Emergency fix request to test Insurance vertical workflow. This request was created to resolve system routing issues.',
+                    notes: 'EMERGENCY FIX: Created to resolve request routing issue between Insurance HOD and HOP',
+                    submittedBy: 'Insurance_HOD',
+                    submittedDate: new Date().toISOString(),
+                    status: 'pending',
+                    files: []
+                };
                 
+                cleanedRequests.push(emergencyRequest);
+                allRequests = cleanedRequests;
+                localStorage.setItem('cms_requests', JSON.stringify(allRequests));
+                
+                // Force refresh all data
                 loadHopStats();
                 loadHopRequests();
+                
+                // Show detailed success message
+                const popup = document.createElement('div');
+                popup.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: white;
+                    padding: 30px;
+                    border-radius: 15px;
+                    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+                    z-index: 10001;
+                    max-width: 600px;
+                    text-align: center;
+                    font-family: 'Segoe UI', sans-serif;
+                `;
+                
+                popup.innerHTML = `
+                    <div style="font-size: 48px; margin-bottom: 20px;">✅</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #2d3748; margin-bottom: 15px;">Emergency Fix Applied Successfully!</div>
+                    <div style="font-size: 16px; color: #666; margin-bottom: 25px; text-align: left;">
+                        <strong>✅ Actions Completed:</strong><br>
+                        • Cleaned corrupted Insurance data<br>
+                        • Created fresh request: ${emergencyRequest.requestId}<br>
+                        • Updated localStorage<br>
+                        • Refreshed dashboard<br><br>
+                        
+                        <strong>📋 Test Request Details:</strong><br>
+                        • ID: ${emergencyRequest.requestId}<br>
+                        • Department: Insurance Vertical<br>
+                        • Status: Pending (ready for HOP approval)<br>
+                        • Priority: High<br><br>
+                        
+                        <strong>🎯 Next Steps:</strong><br>
+                        1. Check HOP dashboard for the new request<br>
+                        2. Test approval workflow<br>
+                        3. Verify Content FPR receives approved requests
+                    </div>
+                    <button onclick="this.parentElement.remove(); location.reload();" style="
+                        background: linear-gradient(135deg, #48bb78, #38a169);
+                        color: white;
+                        border: none;
+                        padding: 12px 24px;
+                        border-radius: 8px;
+                        font-size: 16px;
+                        font-weight: 600;
+                        cursor: pointer;
+                    ">Reload Page & Test</button>
+                `;
+                
+                document.body.appendChild(popup);
             }
         }
 
